@@ -15,6 +15,7 @@ sys.path.append(DEFDIR)
 try:
     import milkshake
     milkshake.Milkshake(DEFDIR).run()
-except:
+except Exception, e:
     import appuifw
-    appuifw.note(u"Could not start Milkshake","error")    
+    appuifw.app.body = appuifw.Text(repr(e))
+        
