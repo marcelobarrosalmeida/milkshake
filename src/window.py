@@ -545,7 +545,7 @@ class Window(object):
         self.set_ui(title, body, global_menu, exit_handler)
         
     def set_ui(self, title, body, global_menu = None, exit_handler = None):
-        
+
         self.title = title
         self.tab_title = None
         
@@ -567,7 +567,7 @@ class Window(object):
         self.global_menu = global_menu
         self.exit_handler = exit_handler
         self.last_tab = 0
-
+        
     def set_title(self,title):
         " Sets the current application title "
         app.title = self.title = title
@@ -586,12 +586,15 @@ class Window(object):
             app.set_tabs([b[0] for b in self.bodies],self.tab_handler)
             self.tab_handler(self.last_tab)
             app.activate_tab(self.last_tab)
+            # use tab title as title if we have just one tab
+            if len(self.bodies) == 1:
+                app.title = self.bodies[0][0]
         else:
             app.set_tabs([], None)
             app.menu = self.global_menu
             app.body = self.body
             self.tab_title = None
-        app.title = self.title
+            app.title = self.title
         app.exit_key_handler = self.exit_handler
 
     def tab_handler(self,idx):
@@ -680,7 +683,7 @@ class Dialog(Window):
             defautl values for dialog class are used. 
         """
         self.cbk = cbk
-        self.cancel = False        
+        self.cancel = False
         Window.__init__(self, title, body, menu, exit_handler)
 
     def close_app(self):
