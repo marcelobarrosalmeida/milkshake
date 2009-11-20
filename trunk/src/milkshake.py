@@ -32,14 +32,14 @@ class Milkshake(Application):
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
+        self.show_done = False
         app.screen = 'normal'
         app.directional_pad = False
         self.load_cfg()
-        self.common_menu = [ (u"New group",self.new_group),
-                             (u"Rename group",self.ren_group),
-                             (u"Del group",self.del_group),
+        self.common_menu = [ (u"Tasks ...",self.task_cbk),
+                             (u"Groups ...", self.group_cbk),
+                             (u"Syncronize ...",self.sync_cbk),
                              (u"Save",self.save_cfg),
-                             (u"Update", self.update_ms),
                              (u"About", self.about_ms),
                              (u"Exit", self.close_app) ]
         Application.__init__(self, u"Milkshake", Listbox([u""],lambda:None), self.common_menu)
@@ -50,7 +50,7 @@ class Milkshake(Application):
         groups = self.tasks.keys()
         groups.sort()
         for grp in groups:
-            app_data.append((grp,Listbox(self.get_tasknames(grp),self.group_cbk),[])) 
+            app_data.append((grp,Listbox(self.get_tasknames(grp),self.task_cbk),[])) 
         self.set_ui(u"Milkshake", app_data, self.common_menu)
         self.refresh()
         
@@ -67,35 +67,51 @@ class Milkshake(Application):
             self.tasks = pickle.load(f)
             f.close()
         except:
-            note(u"Impossible to load config from "+Milkshake.MSDBNAME,"error")
+            if os.path.exists(Milkshake.MSDBNAME):
+                note(u"Impossible to load config from "+Milkshake.MSDBNAME,"error")
             self.tasks = { u"Default" : [] }
 
     def save_cfg(self):
         try:
             f = open(Milkshake.MSDBNAME,"wb")
-            pickle.dump(MSVERSION,f)
+            pickle.dump(Milkshake.MSVERSION,f)
             pickle.dump(self.tasks,f)
             f.close()
         except:
             note(u"Impossible to save config to file "+Milkshake.MSDBNAME,"error")
 
     def group_cbk(self):
+        menu = [(u"New",self.new_group),
+                (u"Rename",self.ren_group),
+                (u"Delete",self.del_group)]
+        if self.show_done:
+            menu.append((u"Hide done tasks",lambda: self.show_done_tasks(False)))
+        else:
+            menu.append((u"Show done tasks",lambda:self.show_done_tasks(True)))
+        op = popup_menu([m[0] for m in menu],u"Group menu:")
+        if op is not None:
+            menu[op][1]()
+
+    def task_cbk(self):
         grp = self.tab_title
         if self.tasks[grp]:
             menu = [(u"Edit note",self.edit_note),
-                    (u"Edit date",None),
-                    (u"New task",self.new_task),
-                    (u"Rename task",self.ren_task),
-                    (u"Delete task",self.del_task)]
+                    (u"New",self.new_task),
+                    (u"Rename",self.ren_task),
+                    (u"Mark as done",self.done_task),
+                    (u"Delete",self.del_task)]
             if len(self.tasks.keys()) >1:
-                menu.append((u"Move task",self.move_task))
+                menu.append((u"Move",self.move_task))
         else:
-            menu = [(u"New task",self.new_task)]
+            menu = [(u"New",self.new_task)]
         n = app.body.current()
-        op = popup_menu([m[0] for m in menu],u"Menu")
+        op = popup_menu([m[0] for m in menu],u"Tasks menu:")
         if op is not None:
             menu[op][1](grp,n)
         
+    def sync_cbk(self):
+        note(u"Soon as possible ! Please, wait.","info")
+
     def new_group(self):
         grp = query(u"Group name:","text",u"")
         if grp is not None:
@@ -168,6 +184,8 @@ class Milkshake(Application):
             del self.tasks[grp][n]
             self.update_groups()
 
+    def show_done_tasks(yn): pass
+    def done_task(self,grp,n): pass
     def update_ms(self): pass
     def about_ms(self):
         def cbk():
