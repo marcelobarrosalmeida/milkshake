@@ -80,7 +80,8 @@ your Remember The Milk account. When you complete this authentication,
     def get_lists(self):
         try:
             l = self.rtm.lists.getList()
-            self.lists = [[l.archived, l.deleted, l.id, l.locked, l.name, l.position, l.smart, l.sort_order] for l in l.lists.list]
+            self.lists = [[l.archived, l.deleted, l.id, l.locked, l.name,
+                           l.position, l.smart, l.sort_order] for l in l.lists.list]
         except:
             note(u"Cannot download List data.", "error")
     
@@ -91,14 +92,17 @@ your Remember The Milk account. When you complete this authentication,
             else:
                 t = self.rtm.tasks.getList(list_id=plist_id)
             
-            self.tasks[list_id] = [[t.created, t.id, t.location_id, t.modified, t.name, t.notes, t.participants, t.source, t.tags, t.task, t.url] for t in t.tasks.list.taskseries]
+            self.tasks[list_id] = [[t.created, t.id, t.location_id,
+                                    t.modified, t.name, t.notes,
+                                    t.participants, t.source, t.tags, t.task,
+                                    t.url] for t in t.tasks.list.taskseries]
         except:
             note(u"Cannot download Tasks.", "error")
     
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
-    MSVERSION = u"0.0.1"
+    MSVERSION = u"0.0.2"
     APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
     SECRET = u"67b5855d779f0d37"
     def __init__(self,path=u"e:\\python"):
