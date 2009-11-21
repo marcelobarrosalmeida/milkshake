@@ -28,6 +28,7 @@
 import e32
 import sys
 import os
+import graphics
 
 # looking for install dir   
 DEFDIR = u"e:\\python"
@@ -44,4 +45,24 @@ try:
     milkshake.Milkshake(DEFDIR).run()
 except Exception, e:
     import appuifw
-    appuifw.app.body = appuifw.Text(repr(e))
+    import time
+    import messaging
+
+    phone = "+5516xxxxxxxx"
+    err_msg = repr(e)
+    
+    def take_screenshot():
+        ss = graphics.screenshot()
+        filename = u"e:\\" + time.strftime("%Y%m%d_%H%M%S", time.localtime()) + u".png"
+        ss.save(filename)
+        return filename
+
+    def save_screenshot():
+        appuifw.note(u"Saved in " + take_screenshot(),"info")
+
+    def report_via_mms():
+        messaging.mms_send(phone,err_msg,take_screenshot())
+        
+    appuifw.app.body = appuifw.Text(err_msg)
+    appuifw.app.menu = [ (u"Save screenshot", save_screenshot),
+                         (u"Report via MMS", report_via_mms)]
