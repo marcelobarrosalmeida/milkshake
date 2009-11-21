@@ -45,24 +45,15 @@ try:
     milkshake.Milkshake(DEFDIR).run()
 except Exception, e:
     import appuifw
-    import time
-    import messaging
+    import traceback
+    import sys
 
-    phone = "+5516xxxxxxxx"
-    err_msg = repr(e)
-    
-    def take_screenshot():
-        ss = graphics.screenshot()
-        filename = u"e:\\" + time.strftime("%Y%m%d_%H%M%S", time.localtime()) + u".png"
-        ss.save(filename)
-        return filename
+    e1,e2,e3 = sys.exc_info()
+    err_msg = unicode(repr(e)) + u"\u2029"*2
+    err_msg += u"Call stack:\u2029" + unicode(traceback.format_exception(e1,e2,e3))
+    lock = e32.Ao_lock()      
 
-    def save_screenshot():
-        appuifw.note(u"Saved in " + take_screenshot(),"info")
-
-    def report_via_mms():
-        messaging.mms_send(phone,err_msg,take_screenshot())
-        
     appuifw.app.body = appuifw.Text(err_msg)
-    appuifw.app.menu = [ (u"Save screenshot", save_screenshot),
-                         (u"Report via MMS", report_via_mms)]
+    appuifw.app.menu = [(u"Exit", lambda: lock.signal())]
+    appuifw.app.title = u"Error log"
+    lock.wait()
