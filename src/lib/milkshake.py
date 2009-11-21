@@ -80,22 +80,35 @@ your Remember The Milk account. When you complete this authentication,
     def get_lists(self):
         try:
             l = self.rtm.lists.getList()
-            self.lists = [[l.archived, l.deleted, l.id, l.locked, l.name,
-                           l.position, l.smart, l.sort_order] for l in l.lists.list]
+            self.lists = [{"archived":l.archived, 
+                          "deleted":l.deleted, 
+                          "id":l.id, 
+                          "locked":l.locked, 
+                          "name":l.name, 
+                          "position":l.position, 
+                          "smart":l.smart, 
+                          "sort_order":l.sort_order} for l in l.lists.list]
         except:
             note(u"Cannot download List data.", "error")
     
-    def get_tasks(self, plist_id = None):
+    def get_tasks(self, plist_id = None, pfilter=""):
         try:
             if (plist_id == None):
-                t = self.rtm.tasks.getList()
+                t = self.rtm.tasks.getList(filter=pfilter)
             else:
-                t = self.rtm.tasks.getList(list_id=plist_id)
+                t = self.rtm.tasks.getList(list_id=plist_id, filter=pfilter)
             
-            self.tasks[list_id] = [[t.created, t.id, t.location_id,
-                                    t.modified, t.name, t.notes,
-                                    t.participants, t.source, t.tags, t.task,
-                                    t.url] for t in t.tasks.list.taskseries]
+            self.tasks[list_id] = [{"created":t.created, 
+                                   "id":t.id, 
+                                   "location_id":t.location_id, 
+                                   "modified":t.modified, 
+                                   "name":t.name, 
+                                   "notes":t.notes, 
+                                   "participants":t.participants, 
+                                   "source":t.source, 
+                                   "tags":t.tags, 
+                                   "task":t.task, 
+                                   "url":t.url} for t in t.tasks.list.taskseries]
         except:
             note(u"Cannot download Tasks.", "error")
     
