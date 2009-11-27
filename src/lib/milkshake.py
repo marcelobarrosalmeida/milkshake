@@ -1,30 +1,29 @@
 # -*- coding: utf-8 -*-
-######################################################################
-# Milkshake
-# Copyright (C) 2009  Marcelo Barros & Jose Antonio Oliveira
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-#
-# Milkshake  
-# Copyright (C) 2009  Marcelo Barros & Jose Antonio Oliveira
-# This program comes with ABSOLUTELY NO WARRANTY; for details see 
-# about box.
-# This is free software, and you are welcome to redistribute it
-# under certain conditions; see about box for details.
-######################################################################
+"""
+Milkshake
+Copyright (C) 2009  Marcelo Barros & Jose Antonio Oliveira
 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+Milkshake
+Copyright (C) 2009  Marcelo Barros & Jose Antonio Oliveira
+This program comes with ABSOLUTELY NO WARRANTY; for details see 
+about box.
+This is free software, and you are welcome to redistribute it
+under certain conditions; see about box for details.
+"""
 from appuifw import *
 from window import Application, Dialog
 import pickle
@@ -32,6 +31,7 @@ import os
 import e32
 import sysinfo
 from about import About
+from taskutil import *
 
 __all__ = [ "Milkshake" ]
 __author__ = "José Antonio (javsmo@gmail.com) and "
@@ -115,7 +115,7 @@ your Remember The Milk account. When you complete this authentication,
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
-    MSVERSION = u"0.0.2"
+    MSVERSION = u"0.0.3"
     APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
     SECRET = u"67b5855d779f0d37"
     def __init__(self,path=u"e:\\python"):
@@ -124,28 +124,27 @@ class Milkshake(Application):
         self.show_done = False
         app.screen = 'normal'
         app.directional_pad = False
+        self.list_mngr = ListManager()
         self.load_cfg()
-        self.common_menu = [ (u"Tasks ...",self.task_cbk),
-                             (u"Lists ...", self.list_cbk),
+        self.common_menu = [ (u"Lists ...", self.list_cbk),
+                             (u"Tasks ...",self.task_cbk),
                              (u"Syncronize ...",self.sync_cbk),
                              (u"Save",self.save_cfg),
                              (u"About", self.about_ms),
                              (u"Exit", self.close_app) ]
-        Application.__init__(self, u"Milkshake", Listbox([u""],lambda:None), self.common_menu)
+        Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), self.common_menu)
         self.update_lists()
 
     def update_lists(self,lst=None,pos=None):
         app_data = []
-        lists = self.tasks.keys()
-        lists.sort()
-        for lst in lists:
+        for lst in self.list_mngr.keys():
             app_data.append((lst,Listbox(self.get_tasknames(lst),self.task_cbk),[])) 
         self.set_ui(u"Milkshake", app_data, self.common_menu)
         self.refresh()
         
     def get_tasknames(self,lst):
-        if self.tasks[lst]:
-            return[tskn["name"] for tskn in self.tasks[lst]]
+        if self.list_mngr[lst]:
+            return[(tskn["name"],tskn["date"]) for tskn in self.list_mngr[lst]]
         else:
             return [u"Press select to add tasks"]
 
@@ -153,21 +152,25 @@ class Milkshake(Application):
         try:
             f = open(Milkshake.MSDBNAME,"rb")
             version = pickle.load(f)
-            self.tasks = pickle.load(f)
+            self.list_mngr.load(f)
             f.close()
-        except:
+        except Exception, e:
             if os.path.exists(Milkshake.MSDBNAME):
-                note(u"Impossible to load config from "+Milkshake.MSDBNAME,"error")
-            self.tasks = { u"Default" : [] }
+                note(u"Impossible to load config from " +
+                     Milkshake.MSDBNAME +
+                     u". " + unicode(str(e)),"error")
+            self.list_mngr[u"Default"] = TaskList()
 
     def save_cfg(self):
         try:
             f = open(Milkshake.MSDBNAME,"wb")
             pickle.dump(Milkshake.MSVERSION,f)
-            pickle.dump(self.tasks,f)
+            self.list_mngr.save(f)
             f.close()
-        except:
-            note(u"Impossible to save config to file "+Milkshake.MSDBNAME,"error")
+        except Exception, e:
+            note(u"Impossible to save config to file " +
+                 Milkshake.MSDBNAME +
+                 u". " + unicode(str(e)),"error")
 
     def list_cbk(self):
         menu = [(u"New",self.new_list),
@@ -183,13 +186,13 @@ class Milkshake(Application):
 
     def task_cbk(self):
         lst = self.tab_title
-        if self.tasks[lst]:
+        if self.list_mngr[lst]:
             menu = [(u"Edit note",self.edit_note),
                     (u"New",self.new_task),
                     (u"Rename",self.ren_task),
                     (u"Mark as done",self.done_task),
                     (u"Delete",self.del_task)]
-            if len(self.tasks.keys()) >1:
+            if len(self.list_mngr.keys()) > 1:
                 menu.append((u"Move",self.move_task))
         else:
             menu = [(u"New",self.new_task)]
@@ -204,10 +207,10 @@ class Milkshake(Application):
     def new_list(self):
         lst = query(u"List name:","text",u"")
         if lst is not None:
-            if lst in self.tasks.keys():
+            if lst in self.list_mngr.keys():
                 note(u"This list name already exists !","error")
             else:
-                self.tasks[lst] = []
+                self.list_mngr[lst] = TaskList()
                 self.update_lists()
 
     def del_list(self):
@@ -216,61 +219,59 @@ class Milkshake(Application):
         op = popup_menu([u"No", u"Yes"],msg)
         if op is not None:
             if op:
-                del self.tasks[lst]
-                if not self.tasks:
-                    self.tasks = { u"Default" : [] }
+                del self.list_mngr[lst]
+                if not self.list_mngr:
+                    self.list_mngr[u"Default"] = TaskList()
                 self.update_lists()
 
     def ren_list(self):
         olst = self.tab_title
         lst = query(u"List name:","text",olst)
         if lst is not None:
-            # deep copy ?
-            self.tasks[lst] = self.tasks[olst]
-            del self.tasks[olst]
+            self.list_mngr[lst] = self.list_mngr[olst]
+            del self.list_mngr[olst]
             self.update_lists()
 
     def new_task(self,lst,n):
         tsk = query(u"Task name:","text",u"")
         if tsk is not None:
-            self.tasks[lst].append({"name":tsk,"note":u"","date":u""})
+            self.list_mngr[lst].append(Task(name=tsk,note=u"",date=u""))
             lb = self.get_tasknames(lst)
             app.body.set_list(lb,len(lb)-1)
             
     def del_task(self,lst,n):
-        msg = u"Delete " + self.tasks[lst][n]["name"] + u" ?"
+        msg = u"Delete " + self.list_mngr[lst][n]["name"] + u" ?"
         op = popup_menu([u"No", u"Yes"],msg)
         if op is not None:
             if op:
-                del self.tasks[lst][n]
+                del self.list_mngr[lst][n]
                 lb = self.get_tasknames(lst)
                 n = max(n - 1,0)
                 app.body.set_list(lb,n)
 
     def ren_task(self,lst,n):
-        tsk = query(u"Task name:","text",self.tasks[lst][n]["name"])
+        tsk = query(u"Task name:","text",self.list_mngr[lst][n]["name"])
         if tsk is not None:
-            self.tasks[lst][n]["name"] = tsk
+            self.list_mngr[lst][n]["name"] = tsk
             lb = self.get_tasknames(lst)
             app.body.set_list(lb,app.body.current())
 
     def edit_note(self,lst,pos):
         def cbk():
             if not self.dlg.cancel:
-                self.tasks[self.dlg.lst][self.dlg.pos]["note"] = self.dlg.body.get()
+                self.list_mngr[self.dlg.lst][self.dlg.pos]["note"] = self.dlg.body.get()
             self.dlg = None
             self.refresh()
-        self.dlg = Notepad(cbk,lst,pos,self.tasks[lst][pos]["note"])
+        self.dlg = Notepad(cbk,lst,pos,self.list_mngr[lst][pos]["note"])
         self.dlg.run()
 
     def move_task(self,lst,n):
-        glst = [k for k in self.tasks.keys() if k != lst ]
-        glst.sort()
+        glst = [k for k in self.list_mngr.keys() if k != lst ]
         op = popup_menu(glst,u"To list:")
         if op is not None:
             nlst = glst[op] 
-            self.tasks[nlst].append(self.tasks[lst][n])
-            del self.tasks[lst][n]
+            self.list_mngr[nlst].append(self.list_mngr[lst][n])
+            del self.list_mngr[lst][n]
             self.update_lists()
 
     def show_done_tasks(yn): pass
