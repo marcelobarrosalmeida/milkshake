@@ -31,8 +31,15 @@ import copy
 __all__ = [ "Task", "TaskList", "ListManager" ]
 
 class Task(object):
+    OPEN, DONE, DELAYED = range(3)
     # Accepted fields, add more fields if you want
-    DEF_VALS = {'name':u'', 'date':u'', 'note':u'', 'pri':u''}
+    DEF_VALS = {'name':u'',
+                'start_date':u'',
+                'due_date':u'',
+                'note':u'',
+                'pri':u'1',
+                'state':u'',
+                '%done':u'0'}
     
     def __init__(self,**args):
         self.__data = {}
