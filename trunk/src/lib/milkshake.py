@@ -32,6 +32,8 @@ import e32
 import sysinfo
 from about import About
 from taskutil import *
+from settings import MSSettings, Config
+import copy
 
 __all__ = [ "Milkshake" ]
 __author__ = "José Antonio (javsmo@gmail.com) and "
@@ -125,34 +127,47 @@ class Milkshake(Application):
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
-        self.load_cfg()
-        self.common_menu = [ (u"Lists ...", self.list_cbk),
-                             (u"Tasks ...",self.task_cbk),
-                             (u"Syncronize ...",self.sync_cbk),
-                             (u"Save",self.save_cfg),
-                             (u"About", self.about_ms),
-                             (u"Exit", self.close_app) ]
+        self.config = Config()
+        self.load_cfg()    
+        self.common_menu = [(u"Lists ...", self.list_menu),
+                            (u"Tasks ...",self.task_menu),
+                            (u"Syncronize ...",self.sync_dlg),
+                            (u"Settings",self.settings_dlg),
+                            (u"Save",self.save_cfg),
+                            (u"About", self.about_ms),
+                            (u"Exit", self.close_app) ]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), self.common_menu)
         self.update_lists()
 
     def update_lists(self,lst=None,pos=None):
         app_data = []
         for lst in self.list_mngr.keys():
-            app_data.append((lst,Listbox(self.get_tasknames(lst),self.task_cbk),[])) 
+            app_data.append((lst,Listbox(self.get_task_list(lst),self.task_menu),[])) 
         self.set_ui(u"Milkshake", app_data, self.common_menu)
         self.refresh()
-        
-    def get_tasknames(self,lst):
-        if self.list_mngr[lst]:
-            return[(tskn["name"],tskn["date"]) for tskn in self.list_mngr[lst]]
+
+    def get_def_task_list(self):
+        if self.config['single_row']:
+            return [ u"Press select to add tasks" ]
         else:
-            return [u"Press select to add tasks"]
+            return [ (u"Press select to add tasks",u"") ]
+        
+    def get_task_list(self,lst):
+        if self.list_mngr[lst]:
+            if self.config['single_row']:
+                lst = [tskn["name"] for tskn in self.list_mngr[lst]]
+            else:
+                lst = [(tskn["name"],u"") for tskn in self.list_mngr[lst]]
+        else:
+            lst = self.get_def_task_list()
+        return lst
 
     def load_cfg(self):
         try:
             f = open(Milkshake.MSDBNAME,"rb")
             version = pickle.load(f)
             self.list_mngr.load(f)
+            self.config.load(f)
             f.close()
         except Exception, e:
             if os.path.exists(Milkshake.MSDBNAME):
@@ -166,13 +181,14 @@ class Milkshake(Application):
             f = open(Milkshake.MSDBNAME,"wb")
             pickle.dump(Milkshake.MSVERSION,f)
             self.list_mngr.save(f)
+            self.config.save(f)
             f.close()
         except Exception, e:
             note(u"Impossible to save config to file " +
                  Milkshake.MSDBNAME +
                  u". " + unicode(str(e)),"error")
 
-    def list_cbk(self):
+    def list_menu(self):
         menu = [(u"New",self.new_list),
                 (u"Rename",self.ren_list),
                 (u"Delete",self.del_list)]
@@ -184,7 +200,7 @@ class Milkshake(Application):
         if op is not None:
             menu[op][1]()
 
-    def task_cbk(self):
+    def task_menu(self):
         lst = self.tab_title
         if self.list_mngr[lst]:
             menu = [(u"Edit note",self.edit_note),
@@ -201,7 +217,7 @@ class Milkshake(Application):
         if op is not None:
             menu[op][1](lst,n)
         
-    def sync_cbk(self):
+    def sync_dlg(self):
         note(u"Soon as possible ! Please, wait.","info")
 
     def new_list(self):
@@ -236,7 +252,7 @@ class Milkshake(Application):
         tsk = query(u"Task name:","text",u"")
         if tsk is not None:
             self.list_mngr[lst].append(Task(name=tsk,note=u"",date=u""))
-            lb = self.get_tasknames(lst)
+            lb = self.get_task_list(lst)
             app.body.set_list(lb,len(lb)-1)
             
     def del_task(self,lst,n):
@@ -245,7 +261,7 @@ class Milkshake(Application):
         if op is not None:
             if op:
                 del self.list_mngr[lst][n]
-                lb = self.get_tasknames(lst)
+                lb = self.get_task_list(lst)
                 n = max(n - 1,0)
                 app.body.set_list(lb,n)
 
@@ -253,7 +269,7 @@ class Milkshake(Application):
         tsk = query(u"Task name:","text",self.list_mngr[lst][n]["name"])
         if tsk is not None:
             self.list_mngr[lst][n]["name"] = tsk
-            lb = self.get_tasknames(lst)
+            lb = self.get_task_list(lst)
             app.body.set_list(lb,app.body.current())
 
     def edit_note(self,lst,pos):
@@ -274,9 +290,21 @@ class Milkshake(Application):
             del self.list_mngr[lst][n]
             self.update_lists()
 
+    def settings_dlg(self):
+        def cbk():
+            if not self.dlg.cancel:
+                # do we have copy contructor in python ?
+                for k in self.config.keys():
+                    self.config[k] = self.dlg.config[k]
+            self.update_lists()
+            return True
+        self.dlg = MSSettings(cbk,copy.deepcopy(self.config))
+        self.dlg.run()
+        
     def show_done_tasks(yn): pass
     def done_task(self,lst,n): pass
     def update_ms(self): pass
+    
     def about_ms(self):
         def cbk():
             self.refresh()
