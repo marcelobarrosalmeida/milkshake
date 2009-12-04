@@ -123,7 +123,6 @@ class Milkshake(Application):
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
-        self.show_done = False
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
@@ -141,6 +140,8 @@ class Milkshake(Application):
 
     def update_lists(self,lst=None,pos=None):
         app_data = []
+        # set filter for done tasks
+        self.show_done_tasks(self.config['show_done'])
         for lst in self.list_mngr.keys():
             app_data.append((lst,Listbox(self.get_task_list(lst),self.task_menu),[])) 
         self.set_ui(u"Milkshake", app_data, self.common_menu)
@@ -151,13 +152,19 @@ class Milkshake(Application):
             return [ u"Press select to add tasks" ]
         else:
             return [ (u"Press select to add tasks",u"") ]
-        
+    def get_icon(self,tsk):
+        if tsk["perc_done"] >= 100:
+            icon = u"[X] "
+        else:
+            icon = u"[  ] "
+        return icon
+
     def get_task_list(self,lst):
         if self.list_mngr[lst]:
             if self.config['single_row']:
-                lst = [tskn["name"] for tskn in self.list_mngr[lst]]
+                lst = [self.get_icon(tskn) + tskn["name"] for tskn in self.list_mngr[lst] ]
             else:
-                lst = [(tskn["name"],u"") for tskn in self.list_mngr[lst]]
+                lst = [(self.get_icon(tskn) + tskn["name"],u"") for tskn in self.list_mngr[lst]]
         else:
             lst = self.get_def_task_list()
         return lst
@@ -192,7 +199,7 @@ class Milkshake(Application):
         menu = [(u"New",self.new_list),
                 (u"Rename",self.ren_list),
                 (u"Delete",self.del_list)]
-        if self.show_done:
+        if self.config['show_done']:
             menu.append((u"Hide done tasks",lambda: self.show_done_tasks(False)))
         else:
             menu.append((u"Show done tasks",lambda:self.show_done_tasks(True)))
@@ -202,17 +209,20 @@ class Milkshake(Application):
 
     def task_menu(self):
         lst = self.tab_title
+        n = app.body.current()
         if self.list_mngr[lst]:
             menu = [(u"Edit note",self.edit_note),
                     (u"New",self.new_task),
                     (u"Rename",self.ren_task),
-                    (u"Mark as done",self.done_task),
                     (u"Delete",self.del_task)]
             if len(self.list_mngr.keys()) > 1:
                 menu.append((u"Move",self.move_task))
+            if self.list_mngr[lst][n]["perc_done"] < 100:
+                    menu.append((u"Mark as done",self.done_task))
+            else:
+                    menu.append((u"Mark as not done",self.undone_task))
         else:
             menu = [(u"New",self.new_task)]
-        n = app.body.current()
         op = popup_menu([m[0] for m in menu],u"Tasks menu:")
         if op is not None:
             menu[op][1](lst,n)
@@ -251,7 +261,7 @@ class Milkshake(Application):
     def new_task(self,lst,n):
         tsk = query(u"Task name:","text",u"")
         if tsk is not None:
-            self.list_mngr[lst].append(Task(name=tsk,note=u"",date=u""))
+            self.list_mngr[lst].append(Task(name=tsk))
             lb = self.get_task_list(lst)
             app.body.set_list(lb,len(lb)-1)
             
@@ -301,8 +311,25 @@ class Milkshake(Application):
         self.dlg = MSSettings(cbk,copy.deepcopy(self.config))
         self.dlg.run()
         
-    def show_done_tasks(yn): pass
-    def done_task(self,lst,n): pass
+    def show_done_tasks(self,show):
+        for lst in self.list_mngr.keys():
+            if show:
+                self.list_mngr[lst].set_filter(lambda t: True)
+            else:
+                self.list_mngr[lst].set_filter(lambda t: t['perc_done'] < 100)
+            
+    def done_undone_task(self,lst,n,p):
+        self.list_mngr[lst][n]['perc_done'] = p
+        self.list_mngr[lst].update_filter()
+        lb = self.get_task_list(lst)
+        app.body.set_list(lb,n)
+
+    def done_task(self,lst,n):
+        self.done_undone_task(lst,n,100)
+
+    def undone_task(self,lst,n):
+        self.done_undone_task(lst,n,0)
+
     def update_ms(self): pass
     
     def about_ms(self):
