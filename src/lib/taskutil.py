@@ -37,9 +37,9 @@ class Task(object):
                 'start_date':u'',
                 'due_date':u'',
                 'note':u'',
-                'pri':u'1',
+                'pri':0,
                 'state':u'',
-                '%done':u'0'}
+                'perc_done':0}
     
     def __init__(self,**args):
         self.__data = {}
@@ -68,38 +68,58 @@ class Task(object):
 class TaskList(object):
     def __init__(self,lst=None):
         self.__tasks = []
+        self.clear_filter()
         if lst is not None:
             for v in lst:
                 self.append(v)
-
+        
     def __getitem__(self,idx):
-        return self.__tasks[idx]
+        return self.__tasks[self.__filter_idx[idx]]
 
     def __setitem__(self,idx,v):
         if not isinstance(v,Task):
             raise ValueError        
-        self.__tasks[idx] = copy.deepcopy(v)
+        self.__tasks[self.__filter_idx[idx]] = copy.deepcopy(v)
+        self.update_filter()
 
     def append(self,v):
         if not isinstance(v,Task):
             raise ValueError          
         self.__tasks.append(v)
+        self.update_filter()
 
     def __delitem__(self,idx):
-        del self.__tasks[idx]
+        del self.__tasks[self.__filter_idx[idx]]
+        self.update_filter()
 
     def __delslice__(self,n,m):
-        del self.__tasks[n:m]
+        del self.__tasks[self.__filter_idx[n:m]]
+        self.update_filter()
 
     def __setslice__(self,n,m,lst):
-        self.__tasks[n:m] = copy.deepcopy(lst)
+        self.__tasks[self.__filter_idx[n:m]] = copy.deepcopy(lst)
+        self.update_filter()
 
+    def update_filter(self):
+        self.__filter_idx = []
+        for n,t in enumerate(self.__tasks):
+            if self.__filter_func(t):
+                self.__filter_idx.append(n)
+    
+    def set_filter(self,func):
+        self.__filter_func = func
+        self.update_filter()
+
+    def clear_filter(self):
+        self.__filter_func = lambda t: True
+        self.update_filter()
+        
     def iter_tasks(self):
-        for tsk in self.__tasks:
-            yield tsk
+        for n in self.__filter_idx:
+            yield self.__tasks[n]
             
     def __len__(self):
-        return len(self.__tasks)
+        return len(self.__filter_idx)
 
     def __str__(self):
         n = 0
@@ -118,19 +138,42 @@ class ListManager(object):
                 self.__setitem__(k,v)        
         
     def load(self,f):
+        """ Load data in the following format:
+            num_entries
+            list_key(0)
+            list_task_list(0)
+            list_key(1)
+            list_task_list(1)
+            ...
+            ...
+            list_key(num_entries)
+            list_task_list(num_entries)            
+        """ 
         try:
-            lsts = pickle.load(f)
+            n = pickle.load(f)
         except:
             raise IOError
 
-        for k,v in lsts.iteritems():
-            self.__setitem__(k,v)
+        for i in xrange(n):
+            try:
+                k = pickle.load(f)
+                v = pickle.load(f)
+            except:
+                raise IOError
+            self.__setitem__(k,TaskList(v))
     
     def save(self,f):
         try:
-            pickle.dump(self.__lists,f)
+            pickle.dump(len(self),f)
         except:
             raise IOError
+        
+        for k,v in self.iteritems():
+            try:
+                pickle.dump(k,f)
+                pickle.dump(v._TaskList__tasks,f)
+            except:
+                raise IOError
     
     def keys(self):
         lsts = self.__lists.keys()
@@ -174,7 +217,7 @@ if __name__ == "__main__":
     lm[u"smar"].append(Task())
     lm[u"smar"].append(Task())
     lm[u"smar"].append(Task(name="SOE",note="notas"))
-    lm[u"smar"].append(Task(name="PPP"))
+    lm[u"smar"].append(Task(name="PPP",perc_done=100))
     
     lm[u"barao"]=TaskList()
     lm[u"barao"].append(Task())
@@ -206,5 +249,10 @@ if __name__ == "__main__":
     f = open('test.bin','rb')
     lm.load(f)
     f.close()
+
+    print lm
+
+    print "filter...."
+    lm[u"smar"].set_filter(lambda t: t['perc_done'] == 100)
 
     print lm
