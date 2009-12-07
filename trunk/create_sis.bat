@@ -31,6 +31,7 @@ copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\settings  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\milkshake.bin  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\window.py  %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\default.py  %TMPDIR%\
 
 if not exist .\module-repo\ xcopy /E "%PYS60DIR%\module-repo" .\module-repo\
