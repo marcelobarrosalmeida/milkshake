@@ -33,8 +33,8 @@ import pickle
 __all__ = [ "MSCONFIG", "MSSettings", "Config" ]
 
 class Config(object):
-    DEF_VALS = {'single_row':True,
-                'show_done':True}
+    DEF_VALS = {'single_row':False,
+                'show_done':True, 'use_tabs':False}
     
     def __init__(self,**args):
         self.__data = {}
@@ -82,23 +82,28 @@ class MSSettings(Dialog):
     def __init__(self, cbk, cfg):
         self.last_idx = 0
         self.config = cfg
-        Dialog.__init__(self, cbk, u"Milkshake settings",
+        Dialog.__init__(self, cbk, u"Settings",
                         Listbox([(u"",u"")], self.update_value),
                         [(u"Cancel",self.cancel_app)])
     
     def refresh(self):
         if self.config['single_row']:
-            rows = u'Single row'
+            rows = u'Yes'
         else:
-            rows = u'Double row'
+            rows = u'No'
             
         if self.config['show_done']:
             done = u'Yes'
         else:
             done = u'No'
 
-        values = [(u"Show task list in",rows),
-                  (u"Show done tasks",done)]
+        if self.config['use_tabs']:
+            tabs = u'Yes'
+        else:
+            tabs = u'No'
+
+        values = [(u"Use single rows",rows),
+                  (u"Show done tasks",done),(u"Use tabs",tabs)]
         
         self.body.set_list(values, self.last_idx)
         Dialog.refresh(self)
@@ -111,6 +116,8 @@ class MSSettings(Dialog):
             self.config['single_row'] = not self.config['single_row']
         elif idx == 1:
             self.config['show_done'] = not self.config['show_done']
+        elif idx == 2:
+            self.config['use_tabs'] = not self.config['use_tabs']
             
         self.refresh()
 

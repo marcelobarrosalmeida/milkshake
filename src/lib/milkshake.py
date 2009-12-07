@@ -117,7 +117,7 @@ your Remember The Milk account. When you complete this authentication,
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
-    MSVERSION = u"0.0.3"
+    MSVERSION = u"0.0.4"
     APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
     SECRET = u"67b5855d779f0d37"
     def __init__(self,path=u"e:\\python"):
@@ -125,27 +125,53 @@ class Milkshake(Application):
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
         app.screen = 'normal'
         app.directional_pad = False
+        self.last_task_list = None
         self.list_mngr = ListManager()
         self.config = Config()
         self.load_cfg()    
-        self.common_menu = [(u"Lists ...", self.list_menu),
-                            (u"Tasks ...",self.task_menu),
-                            (u"Syncronize ...",self.sync_dlg),
-                            (u"Settings",self.settings_dlg),
+        self.main_menu = [(u"Syncronize ...",self.sync_dlg),
+                            (u"Settings ...",self.settings_dlg),
                             (u"Save",self.save_cfg),
                             (u"About", self.about_ms),
                             (u"Exit", self.close_app) ]
-        Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), self.common_menu)
+        Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])
         self.update_lists()
 
     def update_lists(self,lst=None,pos=None):
-        app_data = []
-        # set filter for done tasks
-        self.show_done_tasks(self.config['show_done'])
-        for lst in self.list_mngr.keys():
-            app_data.append((lst,Listbox(self.get_task_list(lst),self.task_menu),[])) 
-        self.set_ui(u"Milkshake", app_data, self.common_menu)
+        if not self.config['use_tabs']:
+            menu = [(u"Lists ...", self.list_menu)]+self.main_menu
+            self.set_ui(u"Milkshake", Listbox(self.get_task_list_list(),self.list_menu), menu)
+        else:
+            app_data = []
+            menu = [(u"Lists ...", self.list_menu),
+                            (u"Tasks ...",self.task_menu)] + self.main_menu
+            for lst in self.list_mngr.keys():
+                # set filter for done tasks
+                self.show_done_tasks(lst,self.config['show_done'])
+                app_data.append((lst,Listbox(self.get_task_list(lst),self.task_menu),[])) 
+            self.set_ui(u"Milkshake", app_data, menu)
         self.refresh()
+
+    def get_def_task_list_mngr(self):
+        lst = ListManager()
+        lst[u"Default"] = TaskList()
+        return lst
+
+    def get_task_list_list(self):
+        lst = []
+        for k in self.list_mngr.keys():
+            if self.config['single_row']:
+                lst.append(k)
+            else:
+                n = len(self.list_mngr[k])
+                if n > 1:
+                    m = u"%d tasks" % n
+                elif n == 1:
+                    m = u"%d task" % n
+                else:
+                    m = u"No tasks"
+                lst.append((k,m))
+        return lst
 
     def get_def_task_list(self):
         if self.config['single_row']:
@@ -181,7 +207,7 @@ class Milkshake(Application):
                 note(u"Impossible to load config from " +
                      Milkshake.MSDBNAME +
                      u". " + unicode(str(e)),"error")
-            self.list_mngr[u"Default"] = TaskList()
+            self.list_mngr = self.get_def_task_list_mngr()
 
     def save_cfg(self):
         try:
@@ -195,23 +221,34 @@ class Milkshake(Application):
                  Milkshake.MSDBNAME +
                  u". " + unicode(str(e)),"error")
 
+    def get_current_task_list(self):
+        if self.config['use_tabs']:
+            lst = lst = self.tab_title
+        else:
+            if self.last_task_list is None:
+                n = app.body.current()
+                lst = self.list_mngr.keys()[n]
+            else:
+                lst = self.last_task_list
+        return lst
+
     def list_menu(self):
-        menu = [(u"New",self.new_list),
+        lst = self.get_current_task_list()
+        menu = []
+        if not self.config['use_tabs']:
+            menu += [(u"Show tasks",self.edit_task_list)]
+        menu += [(u"New",self.new_list),
                 (u"Rename",self.ren_list),
                 (u"Delete",self.del_list)]
-        if self.config['show_done']:
-            menu.append((u"Hide done tasks",lambda: self.show_done_tasks(False)))
-        else:
-            menu.append((u"Show done tasks",lambda:self.show_done_tasks(True)))
         op = popup_menu([m[0] for m in menu],u"List menu:")
         if op is not None:
-            menu[op][1]()
+            menu[op][1](lst)
 
     def task_menu(self):
-        lst = self.tab_title
+        lst = self.get_current_task_list()
         n = app.body.current()
         if self.list_mngr[lst]:
-            menu = [(u"Edit note",self.edit_note),
+            menu = [(u"Edit",self.edit_task),
                     (u"New",self.new_task),
                     (u"Rename",self.ren_task),
                     (u"Delete",self.del_task)]
@@ -230,32 +267,47 @@ class Milkshake(Application):
     def sync_dlg(self):
         note(u"Soon as possible ! Please, wait.","info")
 
-    def new_list(self):
-        lst = query(u"List name:","text",u"")
-        if lst is not None:
-            if lst in self.list_mngr.keys():
+    def edit_task_list(self,lst):
+        # only valid in non tabbed mode or recursive call
+        if self.config['use_tabs'] or self.last_task_list:
+            raise Exception
+        self.last_task_list = lst
+        def cbk():
+            self.last_task_list = None
+            self.update_lists()
+        # create a new UI using Listbox 
+        self.global_menu = [(u"Tasks ...",self.task_menu),(u"Close",cbk)]
+        # set filter for done tasks
+        self.show_done_tasks(lst,self.config['show_done'])
+        self.body = Listbox(self.get_task_list(self.last_task_list),self.task_menu)
+        self.title = self.last_task_list
+        self.exit_handler = cbk
+        self.refresh()
+
+    def new_list(self,lst):
+        nlst = query(u"List name:","text",lst)
+        if nlst is not None:
+            if nlst in self.list_mngr.keys():
                 note(u"This list name already exists !","error")
             else:
-                self.list_mngr[lst] = TaskList()
+                self.list_mngr[nlst] = TaskList()
                 self.update_lists()
 
-    def del_list(self):
-        lst = self.tab_title
+    def del_list(self,lst):
         msg = u"Delete " + lst + u" ?"
         op = popup_menu([u"No", u"Yes"],msg)
         if op is not None:
             if op:
                 del self.list_mngr[lst]
                 if not self.list_mngr:
-                    self.list_mngr[u"Default"] = TaskList()
+                    self.list_mngr = self.get_def_task_list_mngr()
                 self.update_lists()
 
-    def ren_list(self):
-        olst = self.tab_title
-        lst = query(u"List name:","text",olst)
-        if lst is not None:
-            self.list_mngr[lst] = self.list_mngr[olst]
-            del self.list_mngr[olst]
+    def ren_list(self,lst):
+        nlst = query(u"List name:","text",lst)
+        if nlst is not None:
+            self.list_mngr[nlst] = self.list_mngr[lst]
+            del self.list_mngr[lst]
             self.update_lists()
 
     def new_task(self,lst,n):
@@ -282,7 +334,7 @@ class Milkshake(Application):
             lb = self.get_task_list(lst)
             app.body.set_list(lb,app.body.current())
 
-    def edit_note(self,lst,pos):
+    def edit_task(self,lst,pos):
         def cbk():
             if not self.dlg.cancel:
                 self.list_mngr[self.dlg.lst][self.dlg.pos]["note"] = self.dlg.body.get()
@@ -298,7 +350,12 @@ class Milkshake(Application):
             nlst = glst[op] 
             self.list_mngr[nlst].append(self.list_mngr[lst][n])
             del self.list_mngr[lst][n]
-            self.update_lists()
+            if self.config['use_tabs']:
+                self.update_lists()
+            else:
+                lb = self.get_task_list(lst)
+                n = max(n - 1,0)
+                app.body.set_list(lb,n)
 
     def settings_dlg(self):
         def cbk():
@@ -311,18 +368,18 @@ class Milkshake(Application):
         self.dlg = MSSettings(cbk,copy.deepcopy(self.config))
         self.dlg.run()
         
-    def show_done_tasks(self,show):
-        for lst in self.list_mngr.keys():
-            if show:
-                self.list_mngr[lst].set_filter(lambda t: True)
-            else:
-                self.list_mngr[lst].set_filter(lambda t: t['perc_done'] < 100)
+    def show_done_tasks(self,lst,show):
+        if show:
+            self.list_mngr[lst].set_filter(lambda t: True)
+        else:
+            self.list_mngr[lst].set_filter(lambda t: t['perc_done'] < 100)
             
     def done_undone_task(self,lst,n,p):
         self.list_mngr[lst][n]['perc_done'] = p
         self.list_mngr[lst].update_filter()
         lb = self.get_task_list(lst)
         app.body.set_list(lb,n)
+        #note(lst+(u":%d"%len(lb)),"info")
 
     def done_task(self,lst,n):
         self.done_undone_task(lst,n,100)
