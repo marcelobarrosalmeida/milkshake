@@ -20,15 +20,16 @@ REM Path to module-repo, inside Python For S60
 SET PYS60DIR=C:\Arquivos de programas\PythonForS60
 
 SET OPTS=--verbose --version="%1" --appname="%APPNAME%" ^
-         --icon="%ICON%" --extrasdir=extras --heapsize=4k,5M --caps=%CAPBLS%
+         --extrasdir=extras --heapsize=4k,5M --caps=%CAPBLS%
 
+REM --icon="%ICON%"
 echo "Populating temp dir"
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\about.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\milkshake.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\settings  %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\settings.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\milkshake.bin  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\window.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
