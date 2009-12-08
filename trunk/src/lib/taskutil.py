@@ -32,14 +32,19 @@ import time
 __all__ = [ "Task", "TaskList", "ListManager" ]
 
 class Task(object):
+    # states
     OPEN, DONE, DELAYED = range(3)
+    # types
+    FIXED_DATE, NO_DUE_DATE = range(2)
+    TYPES_DESC = [u"Fixed date", u"No fixed date"]
     # Accepted fields, add more fields if you want
     DEF_VALS = {'name':u'',
                 'start_date':time.time(),
                 'due_date':time.time(),
                 'note':u'',
                 'pri':1,
-                'state':u'',
+                'state':OPEN,
+                'type':NO_DUE_DATE,
                 'perc_done':0}
     
     def __init__(self,**args):
