@@ -53,7 +53,7 @@ class EditTask(Dialog):
                         [(u"Cancel",self.cancel_app)])
     
     def refresh(self):
-        def time2uni(tmr)
+        def time2uni(tmr):
             return unicode(time.strftime("%d/%b/%Y",time.localtime(tmr)))
         values = [(u"Name",self.tsk['name']),
                   (u"Priority",unicode(self.tsk['pri'])),
