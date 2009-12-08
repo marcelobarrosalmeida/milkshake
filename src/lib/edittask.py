@@ -55,31 +55,41 @@ class EditTask(Dialog):
     def refresh(self):
         def time2uni(tmr):
             return unicode(time.strftime("%d/%b/%Y",time.localtime(tmr)))
-        values = [(u"Name",self.tsk['name']),
-                  (u"Priority",unicode(self.tsk['pri'])),
-                  (u"Note",self.tsk['note'][:50]),
-                  (u"Percent done",unicode(self.tsk['perc_done'])),
-                  (u"Start date",time2uni(self.tsk['start_date'])),
-                  (u"Due date",time2uni(self.tsk['due_date']))]
+        values = [(u"Name:",self.tsk['name']),
+                  (u"Type:",Task.TYPES_DESC[self.tsk['type']]),
+                  (u"Priority:",unicode(self.tsk['pri'])),
+                  (u"Note:",self.tsk['note'][:50]),
+                  (u"Percent done:",unicode(self.tsk['perc_done']))]
+        if self.tsk['type'] == Task.FIXED_DATE:
+            values += [(u"Start date:",time2uni(self.tsk['start_date'])),
+                       (u"Due date:",time2uni(self.tsk['due_date']))]
         self.body.set_list(values, self.last_idx)
         Dialog.refresh(self)
 
     def update_value(self):
         idx = app.body.current()
         self.last_idx = idx
-        ops = (self.edit_name,
+        ops = [self.edit_name,
+               self.edit_type,
                self.edit_pri,
                self.edit_note,
-               self.edit_perc_done,
-               self.edit_start_date,
-               self.edit_due_date)
+               self.edit_perc_done]
+        if self.tsk['type'] == Task.FIXED_DATE:
+            ops += [self.edit_start_date,
+                    self.edit_due_date]
         ops[idx]()
         self.refresh()
-        
+            
     def edit_name(self):
         name = query(u"Task name:","text",self.tsk["name"])
         if name is not None:
             self.tsk["name"] = name
+
+    def edit_type(self):
+        if self.tsk['type'] == Task.FIXED_DATE:
+            self.tsk['type'] = Task.NO_DUE_DATE
+        else:
+            self.tsk['type'] = Task.FIXED_DATE
             
     def edit_pri(self):
         pri_ops = [u"1 (high)",u"2",u"3",u"4",u"5 (low)"]
