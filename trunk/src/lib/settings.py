@@ -34,7 +34,7 @@ __all__ = [ "MSCONFIG", "MSSettings", "Config" ]
 
 class Config(object):
     DEF_VALS = {'single_row':False,
-                'show_done':True, 'use_tabs':False}
+                'show_done':True}
     
     def __init__(self,**args):
         self.__data = {}
@@ -97,13 +97,8 @@ class MSSettings(Dialog):
         else:
             done = u'No'
 
-        if self.config['use_tabs']:
-            tabs = u'Yes'
-        else:
-            tabs = u'No'
-
         values = [(u"Use single rows",rows),
-                  (u"Show done tasks",done),(u"Use tabs",tabs)]
+                  (u"Show done tasks",done)]
         
         self.body.set_list(values, self.last_idx)
         Dialog.refresh(self)
@@ -116,8 +111,5 @@ class MSSettings(Dialog):
             self.config['single_row'] = not self.config['single_row']
         elif idx == 1:
             self.config['show_done'] = not self.config['show_done']
-        elif idx == 2:
-            self.config['use_tabs'] = not self.config['use_tabs']
             
         self.refresh()
-
