@@ -27,6 +27,7 @@ under certain conditions; see about box for details.
 
 import pickle
 import copy
+import time
 
 __all__ = [ "Task", "TaskList", "ListManager" ]
 
@@ -34,10 +35,10 @@ class Task(object):
     OPEN, DONE, DELAYED = range(3)
     # Accepted fields, add more fields if you want
     DEF_VALS = {'name':u'',
-                'start_date':u'',
-                'due_date':u'',
+                'start_date':time.time(),
+                'due_date':time.time(),
                 'note':u'',
-                'pri':0,
+                'pri':1,
                 'state':u'',
                 'perc_done':0}
     
