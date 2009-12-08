@@ -28,8 +28,18 @@ under certain conditions; see about box for details.
 from appuifw import *
 from window import Dialog
 from taskutil import Task
+import time
 
 __all__ = [ "EditTask" ]
+
+class Notepad(Dialog):
+    def __init__(self, cbk, title, txt=u""):
+        menu = [(u"Save", self.close_app),
+                (u"Discard", self.cancel_app)]
+        body = Text(txt)
+        body.color = (200,200,200)
+        body.style = STYLE_BOLD
+        Dialog.__init__(self, cbk, title, body, menu)
 
 
 class EditTask(Dialog):
@@ -43,18 +53,61 @@ class EditTask(Dialog):
                         [(u"Cancel",self.cancel_app)])
     
     def refresh(self):
+        def time2uni(tmr)
+            return unicode(time.strftime("%d/%b/%Y",time.localtime(tmr)))
         values = [(u"Name",self.tsk['name']),
                   (u"Priority",unicode(self.tsk['pri'])),
                   (u"Note",self.tsk['note'][:50]),
                   (u"Percent done",unicode(self.tsk['perc_done'])),
-                  (u"Start date",self.tsk['start_date']),
-                  (u"Due date",self.tsk['due_date'])]
-        
+                  (u"Start date",time2uni(self.tsk['start_date'])),
+                  (u"Due date",time2uni(self.tsk['due_date']))]
         self.body.set_list(values, self.last_idx)
         Dialog.refresh(self)
 
     def update_value(self):
         idx = app.body.current()
         self.last_idx = idx
-        
+        ops = (self.edit_name,
+               self.edit_pri,
+               self.edit_note,
+               self.edit_perc_done,
+               self.edit_start_date,
+               self.edit_due_date)
+        ops[idx]()
         self.refresh()
+        
+    def edit_name(self):
+        name = query(u"Task name:","text",self.tsk["name"])
+        if name is not None:
+            self.tsk["name"] = name
+            
+    def edit_pri(self):
+        pri_ops = [u"1 (high)",u"2",u"3",u"4",u"5 (low)"]
+        op = popup_menu(pri_ops,u"Priority:")
+        if op is not None:
+            self.tsk["pri"] = op+1
+    
+    def edit_note(self):
+        def cbk():
+            if not self.dlg.cancel:
+                self.tsk["note"] = self.dlg.body.get()
+            self.dlg = None
+            self.refresh()
+        self.dlg = Notepad(cbk,self.tsk["name"],self.tsk["note"])
+        self.dlg.run()
+        
+    def edit_perc_done(self):
+        perc_ops = [u"%d" % n for n in range(0,101,10)]
+        op = popup_menu(perc_ops,u"Percent done:")
+        if op is not None:
+            self.tsk["perc_done"] = op*10
+            
+    def edit_start_date(self):
+        dt = query(u"Start date:","date",self.tsk["start_date"])
+        if dt is not None:
+            self.tsk["start_date"] = dt
+            
+    def edit_due_date(self): 
+        dt = query(u"Due date:","date",self.tsk["due_date"])
+        if dt is not None:
+            self.tsk["due_date"] = dt
