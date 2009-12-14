@@ -30,7 +30,6 @@ copy  %SRCDIR%\lib\about.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\milkshake.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\settings.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\milkshake.bin  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\window.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\lib\edittask.py  %TMPDIR%\extras\data\python\milkshakedir
