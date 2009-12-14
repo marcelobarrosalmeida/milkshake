@@ -74,11 +74,32 @@ class Task(object):
 class TaskList(object):
     def __init__(self,lst=None):
         self.__tasks = []
-        self.clear_filter()
+        self.__order_filter_func = TaskList.cmp_task #lambda a,b: cmp(a["pri"],b["pri"])
+        self.__selection_filter_func = lambda a: True
+        self.__filter_idx = []
         if lst is not None:
             for v in lst:
                 self.append(v)
-        
+    @staticmethod
+    def cmp_task(a,b):
+        """ Rules:
+            - tasks marked as done go to the end
+            - if not done, higher priority taks come first
+            - if same priority, tasks with due date come first
+            - if same priority and no due date for both, less completed tasks come first
+        """
+        if a["perc_done"] >= 100 or b["perc_done"] >= 100:
+            return cmp(a["perc_done"] >= 100,b["perc_done"] >= 100)
+        elif a["pri"] == b["pri"]:
+            if a['type'] == Task.FIXED_DATE and b['type'] == Task.FIXED_DATE:
+                return cmp(a["due_date"],b["due_date"])
+            elif a['type'] == Task.NO_DUE_DATE and b['type'] == Task.NO_DUE_DATE:
+                return cmp(a["perc_done"],b["perc_done"])
+            else:
+                return cmp(b['type'] == Task.FIXED_DATE,a['type'] == Task.FIXED_DATE)
+        else:
+            return cmp(a["pri"],b["pri"])
+
     def __getitem__(self,idx):
         return self.__tasks[self.__filter_idx[idx]]
 
@@ -86,39 +107,48 @@ class TaskList(object):
         if not isinstance(v,Task):
             raise ValueError        
         self.__tasks[self.__filter_idx[idx]] = copy.deepcopy(v)
-        self.update_filter()
+        self.update_filters()
 
     def append(self,v):
         if not isinstance(v,Task):
             raise ValueError          
         self.__tasks.append(v)
-        self.update_filter()
+        self.update_filters()
 
     def __delitem__(self,idx):
         del self.__tasks[self.__filter_idx[idx]]
-        self.update_filter()
+        self.update_filters()
 
     def __delslice__(self,n,m):
         del self.__tasks[self.__filter_idx[n:m]]
-        self.update_filter()
+        self.update_filters()
 
     def __setslice__(self,n,m,lst):
         self.__tasks[self.__filter_idx[n:m]] = copy.deepcopy(lst)
-        self.update_filter()
+        self.update_filters()
 
-    def update_filter(self):
+    def update_filters(self):
         self.__filter_idx = []
+        self.__tasks.sort(cmp=self.__order_filter_func)
         for n,t in enumerate(self.__tasks):
-            if self.__filter_func(t):
+            if self.__selection_filter_func(t):
                 self.__filter_idx.append(n)
-    
-    def set_filter(self,func):
-        self.__filter_func = func
-        self.update_filter()
+        
+    def set_selection_filter(self,func):
+        self.__selection_filter_func = func
+        self.update_filters()
 
-    def clear_filter(self):
-        self.__filter_func = lambda t: True
-        self.update_filter()
+    def set_order_filter(self,func):
+        self.__order_filter_func = func
+        self.update_filters()
+
+    def clear_order_filter(self):
+        self.__order_filter_func = TaskList.cmp_task
+        self.update_filters()
+      
+    def clear_selection_filter(self):
+        self.__selection_filter_func = lambda a: True
+        self.update_filters()
         
     def iter_tasks(self):
         for n in self.__filter_idx:
