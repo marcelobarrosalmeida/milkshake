@@ -24,6 +24,7 @@ about box.
 This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
+
 from appuifw import *
 from window import Application, Dialog
 import pickle
@@ -35,6 +36,7 @@ from taskutil import *
 from edittask import EditTask
 from settings import MSSettings, Config
 import copy
+import time
 
 __all__ = [ "Milkshake" ]
 __author__ = "José Antonio (javsmo@gmail.com) and "
@@ -47,17 +49,6 @@ def display_in_browser(url):
     b = 'BrowserNG.exe'
     e32.start_exe(b, ' "4 %s"' %url, 1)
 
-class Notepad(Dialog):
-    def __init__(self, cbk, lst, pos, txt=u"",):
-        menu = [(u"Save", self.close_app),
-                (u"Discard", self.cancel_app)]
-        self.lst = lst
-        self.pos = pos
-        body = Text(txt)
-        body.color = (200,200,200)
-        body.style = STYLE_BOLD
-        Dialog.__init__(self, cbk, lst, body, menu)
-    
 class RTMSync():
     rtm = None
     api_key = u""
@@ -131,10 +122,10 @@ class Milkshake(Application):
         self.load_cfg()
         self.tabs_active = False
         self.main_menu = [(u"Syncronize ...",self.sync_dlg),
-                            (u"Settings ...",self.settings_dlg),
-                            (u"Save",self.save_cfg),
-                            (u"About", self.about_ms),
-                            (u"Exit", self.close_app) ]
+                          (u"Settings ...",self.settings_dlg),
+                          (u"Save",self.save_cfg),
+                          (u"About", self.about_ms),
+                          (u"Exit", self.close_app)]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])
         self.update_lists()
 
@@ -145,7 +136,7 @@ class Milkshake(Application):
         else:
             app_data = []
             menu = [(u"Lists ...", self.list_menu),
-                            (u"Tasks ...",self.task_menu)] + self.main_menu
+                    (u"Tasks ...",self.task_menu)] + self.main_menu
             for lst in self.list_mngr.keys():
                 # set filter for done tasks
                 self.show_done_tasks(lst,self.config['show_done'])
@@ -187,9 +178,10 @@ class Milkshake(Application):
 
     def get_def_task_list(self):
         if self.config['single_row']:
-            return [ u"Press select to add tasks" ]
+            return [u"Press select to add tasks"]
         else:
-            return [ (u"Press select to add tasks",u"") ]
+            return [(u"Press select to add tasks",u"")]
+        
     def get_icon(self,tsk):
         if tsk["perc_done"] >= 100:
             icon = u"[X] "
@@ -200,12 +192,18 @@ class Milkshake(Application):
     def get_task_list(self,lst):
         if self.list_mngr[lst]:
             if self.config['single_row']:
-                lst = [self.get_icon(tskn) + tskn["name"] for tskn in self.list_mngr[lst] ]
+                tlst = [self.get_icon(tskn) + tskn["name"] for tskn in self.list_mngr[lst] ]
             else:
-                lst = [(self.get_icon(tskn) + tskn["name"],u"") for tskn in self.list_mngr[lst]]
+                tlst = []
+                for t in self.list_mngr[lst]:
+                    a = self.get_icon(t) + t["name"]
+                    b = u"P%d  %d%%  " % (t['pri'],t['perc_done'])
+                    if t['type'] == Task.FIXED_DATE:
+                        b += unicode(time.strftime("%d/%b/%Y",time.localtime(t['due_date'])))
+                    tlst.append((a,b))
         else:
-            lst = self.get_def_task_list()
-        return lst
+            tlst = self.get_def_task_list()
+        return tlst
 
     def load_cfg(self):
         try:
@@ -300,7 +298,11 @@ class Milkshake(Application):
             self.update_lists()
 
     def new_task(self,lst,n):
-        tsk = query(u"Task name:","text",u"")
+        if self.list_mngr[lst]:
+            tskn = self.list_mngr[lst][n]["name"]
+        else:
+            tskn = u""
+        tsk = query(u"Task name:","text",tskn)
         if tsk is not None:
             self.list_mngr[lst].append(Task(name=tsk))
             lb = self.get_task_list(lst)
@@ -327,9 +329,8 @@ class Milkshake(Application):
         def cbk():
             if not self.dlg.cancel:
                 self.list_mngr[self.dlg.lst][self.dlg.pos] = self.dlg.tsk
-            self.dlg = None
-            self.refresh()
-        self.dlg = EditTask(cbk,self.list_mngr[lst][pos],lst,pos)
+            self.update_lists(self.dlg.lst_pos,self.dlg.pos)
+        self.dlg = EditTask(cbk,self.list_mngr[lst][pos],lst,self.last_tab,pos)
         self.dlg.run()
 
     def move_task(self,lst,n):
@@ -344,7 +345,6 @@ class Milkshake(Application):
     def settings_dlg(self):
         def cbk():
             if not self.dlg.cancel:
-                # do we have copy contructor in python ?
                 for k in self.config.keys():
                     self.config[k] = self.dlg.config[k]
             self.update_lists()
@@ -354,16 +354,15 @@ class Milkshake(Application):
         
     def show_done_tasks(self,lst,show):
         if show:
-            self.list_mngr[lst].set_filter(lambda t: True)
+            self.list_mngr[lst].set_selection_filter(lambda t: True)
         else:
-            self.list_mngr[lst].set_filter(lambda t: t['perc_done'] < 100)
+            self.list_mngr[lst].set_selection_filter(lambda t: t['perc_done'] < 100)
             
     def done_undone_task(self,lst,n,p):
         self.list_mngr[lst][n]['perc_done'] = p
-        self.list_mngr[lst].update_filter()
+        self.list_mngr[lst].update_filters()
         lb = self.get_task_list(lst)
         app.body.set_list(lb,n)
-        #note(lst+(u":%d"%len(lb)),"info")
 
     def done_task(self,lst,n):
         self.done_undone_task(lst,n,100)
@@ -371,8 +370,6 @@ class Milkshake(Application):
     def undone_task(self,lst,n):
         self.done_undone_task(lst,n,0)
 
-    def update_ms(self): pass
-    
     def about_ms(self):
         def cbk():
             self.refresh()
@@ -381,7 +378,7 @@ class Milkshake(Application):
         self.dlg.run()
     
     def close_app(self):
-        ny = popup_menu( [u"Yes", u"No"], u"Leave milkshake ?" )
+        ny = popup_menu([u"Yes", u"No"], u"Leave milkshake ?")
         if ny is not None:
             if ny == 0:
                 self.save_cfg()
