@@ -26,19 +26,21 @@ REM --icon="%ICON%"
 echo "Populating temp dir"
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\about.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\milkshake.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\settings.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\window.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\taskutil.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\edittask.py  %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\default.py  %TMPDIR%\
+
+copy  %SRCDIR%\lib\about.py       %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\milkshake.py   %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\taskutil.py    %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\settings.py    %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\window.py      %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\taskutil.py    %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\edittask.py    %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\milkshake.mif  %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\default.py         %TMPDIR%\
 
 if not exist .\module-repo\ xcopy /E "%PYS60DIR%\module-repo" .\module-repo\
 if not exist .\templates\   xcopy /E "%PYS60DIR%\templates"   .\templates\
-if not exist ensymble.py   xcopy /E "%PYS60DIR%\ensymble.py" .
-if not exist openssl.exe   xcopy /E "%PYS60DIR%\openssl.exe" .
+if not exist ensymble.py    xcopy /E "%PYS60DIR%\ensymble.py" .
+if not exist openssl.exe    xcopy /E "%PYS60DIR%\openssl.exe" .
 
 %PYTHON% ensymble.py py2sis %OPTS% "%TMPDIR%" "%APPNAME%-%1.sis"
 
