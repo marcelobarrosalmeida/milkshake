@@ -1,0 +1,17 @@
+ 
+/* This file has been generated, DO NOT MODIFY. */
+enum TMifMilkshake
+	{
+	EMbmMilkshakeP00 = 16384,
+	EMbmMilkshakeP10 = 16386,
+	EMbmMilkshakeP20 = 16388,
+	EMbmMilkshakeP30 = 16390,
+	EMbmMilkshakeP40 = 16392,
+	EMbmMilkshakeP50 = 16394,
+	EMbmMilkshakeP60 = 16396,
+	EMbmMilkshakeP70 = 16398,
+	EMbmMilkshakeP80 = 16400,
+	EMbmMilkshakeP90 = 16402,
+	EMbmMilkshakeP100 = 16404,
+	EMbmMilkshakeLastElement
+	};
