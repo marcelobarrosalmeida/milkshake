@@ -109,17 +109,20 @@ your Remember The Milk account. When you complete this authentication,
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
-    MSVERSION = u"0.0.5"
+    MSICONNAME = u""
+    MSVERSION = u"0.0.6"
     APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
     SECRET = u"67b5855d779f0d37"
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
+        Milkshake.MSICONNAME = os.path.join(path,u"milkshake.mif")
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
         self.config = Config()
         self.load_cfg()
+        self.load_icons()
         self.tabs_active = False
         self.main_menu = [(u"Syncronize ...",self.sync_dlg),
                           (u"Settings ...",self.settings_dlg),
@@ -183,28 +186,29 @@ class Milkshake(Application):
             return [(u"Press select to add tasks",u"")]
         
     def get_icon(self,tsk):
-        if tsk["perc_done"] >= 100:
-            icon = u"[X] "
-        else:
-            icon = u"[  ] "
-        return icon
+        return self.icons[tsk["perc_done"]]
 
     def get_task_list(self,lst):
         if self.list_mngr[lst]:
             if self.config['single_row']:
-                tlst = [self.get_icon(tskn) + tskn["name"] for tskn in self.list_mngr[lst] ]
+                tlst = [(tskn["name"],self.get_icon(tskn)) for tskn in self.list_mngr[lst]]
             else:
                 tlst = []
                 for t in self.list_mngr[lst]:
-                    a = self.get_icon(t) + t["name"]
+                    a = t["name"]
                     b = u"P%d  %d%%  " % (t['pri'],t['perc_done'])
                     if t['type'] == Task.FIXED_DATE:
                         b += unicode(time.strftime("%d/%b/%Y",time.localtime(t['due_date'])))
-                    tlst.append((a,b))
+                    tlst.append((a,b,self.get_icon(t)))
         else:
             tlst = self.get_def_task_list()
         return tlst
 
+    def load_icons(self):
+        self.icons = {}
+        for p in range(0,21,2):
+            self.icons[int(10*p/2)] = Icon(Milkshake.MSICONNAME,p,p)
+        
     def load_cfg(self):
         try:
             f = open(Milkshake.MSDBNAME,"rb")
