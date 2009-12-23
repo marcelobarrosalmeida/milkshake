@@ -110,7 +110,7 @@ class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
     MSICONNAME = u""
-    MSVERSION = u"0.0.6"
+    MSVERSION = u"0.0.7"
     APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
     SECRET = u"67b5855d779f0d37"
     def __init__(self,path=u"e:\\python"):
@@ -181,12 +181,12 @@ class Milkshake(Application):
 
     def get_def_task_list(self):
         if self.config['single_row']:
-            return [u"Press select to add tasks"]
+            return [(u"Press select to add tasks",self.icons["none"])]
         else:
-            return [(u"Press select to add tasks",u"")]
+            return [(u"Press select to add tasks",u"",self.icons["none"])]
         
     def get_icon(self,tsk):
-        return self.icons[tsk["perc_done"]]
+        return self.icons["%d-%d" % (tsk["pri"],tsk["perc_done"])]
 
     def get_task_list(self,lst):
         if self.list_mngr[lst]:
@@ -206,8 +206,11 @@ class Milkshake(Application):
 
     def load_icons(self):
         self.icons = {}
-        for p in range(0,21,2):
-            self.icons[int(10*p/2)] = Icon(Milkshake.MSICONNAME,p,p)
+        for i in range(1,6):
+            for p in range(0,21,2):
+                n = (i-1)*22+p
+                self.icons["%d-%d"%(i,int(10*p/2))] = Icon(Milkshake.MSICONNAME,n,n)
+        self.icons["none"] = Icon(Milkshake.MSICONNAME,110,110)
         
     def load_cfg(self):
         try:
