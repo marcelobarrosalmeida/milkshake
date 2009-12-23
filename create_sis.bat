@@ -12,7 +12,7 @@ SET APPNAME=Milkshake
 SET CAPBLS=NetworkServices+LocalServices+ReadUserData+WriteUserData+UserEnvironment
 SET SRCDIR=src
 SET TMPDIR=src.tmp
-SET ICON=img\milkshake-icon.svg
+SET ICON=img\none.svg
 
 REM put you zip tool here
 SET ZIP="C:\Arquivos de programas\7-Zip\7z.exe"
@@ -20,7 +20,7 @@ REM Path to module-repo, inside Python For S60
 SET PYS60DIR=C:\Arquivos de programas\PythonForS60
 
 SET OPTS=--verbose --version="%1" --appname="%APPNAME%" ^
-         --extrasdir=extras --heapsize=4k,5M --caps=%CAPBLS%
+         --extrasdir=extras --heapsize=4k,5M --caps=%CAPBLS% --icon="%ICON%"
 
 REM --icon="%ICON%"
 echo "Populating temp dir"
