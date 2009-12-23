@@ -83,13 +83,16 @@ class TaskList(object):
     @staticmethod
     def cmp_task(a,b):
         """ Rules:
-            - tasks marked as done go to the end
+            - tasks marked as done go to the end, sorted by their priority
             - if not done, higher priority taks come first
             - if same priority, tasks with due date come first
             - if same priority and no due date for both, less completed tasks come first
         """
         if a["perc_done"] >= 100 or b["perc_done"] >= 100:
-            return cmp(a["perc_done"] >= 100,b["perc_done"] >= 100)
+            if a["perc_done"] >= 100 and b["perc_done"] >= 100:
+                return cmp(a["pri"],b["pri"])
+            else:
+                return cmp(a["perc_done"] >= 100,b["perc_done"] >= 100)
         elif a["pri"] == b["pri"]:
             if a['type'] == Task.FIXED_DATE and b['type'] == Task.FIXED_DATE:
                 return cmp(a["due_date"],b["due_date"])
