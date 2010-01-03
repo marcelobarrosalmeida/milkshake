@@ -38,10 +38,8 @@ class Task(object):
     FIXED_DATE, NO_DUE_DATE = range(2)
     TYPES_DESC = [u"Fixed date", u"No fixed date"]
     # Accepted fields, add more fields if you want
-    DEF_VALS = {'id':'',
-                'name':u'',
+    DEF_VALS = {'name':u'',
                 'start_date':time.time(),
-                'last_modified':time.time(),
                 'due_date':time.time(),
                 'note':u'',
                 'pri':1,

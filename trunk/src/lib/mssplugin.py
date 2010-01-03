@@ -25,25 +25,3 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-__all__ = [ "MSSyncPlugin" ]
-
-class MSSyncPlugin(object):
-    
-    def get_name(self):
-        """ Returns the plugin name. Must be a unicode string
-        """
-        raise NotImplementedError
-    
-    def get_version(self):
-        """ Returns the plugin version. Must be a unicode string
-        """
-        raise NotImplementedError
-    
-    def run(self,task_lists):
-        """ Plugin code. Do whatever you want to sync the task_lists and
-            return True, False or raise an exception. task_list is dict where
-            keys are list names and values are arrays of tasks. Only standard
-            types are used.
-        """
-        raise NotImplementedError
-

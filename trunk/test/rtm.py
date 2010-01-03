@@ -8,10 +8,11 @@ __all__ = (
         )
 
 
+import new
 import warnings
 import urllib
 import logging
-from hashlib import md5
+from md5 import md5
 
 warnings.simplefilter('default', ImportWarning)
 
@@ -20,12 +21,8 @@ try:
     import simplejson
     _use_simplejson = True
 except ImportError:
-    try:
-        from django.utils import simplejson
-        _use_simplejson = True
-    except ImportError:
-        pass
-    
+    pass
+
 if not _use_simplejson:
     warnings.warn("simplejson module is not available, "
              "falling back to the internal JSON parser. "
@@ -184,7 +181,7 @@ def openURL(url, queryArgs=None):
     return urllib.urlopen(url)
 
 class dottedDict(object):
-    """Make dictionary items accessible via the object-dot notation."""
+    "Make dictionary items accessible via the object-dot notation."
 
     def __init__(self, name, dictionary):
         self._name = name
@@ -197,8 +194,6 @@ class dottedDict(object):
                     value = [dottedDict('%s_%d' % (key, i), item)
                              for i, item in indexed(value)]
                 setattr(self, key, value)
-        else:
-            raise ValueError, 'not a dict: %s' % dictionary
 
     def __repr__(self):
         children = [c for c in dir(self) if not c.startswith('_')]
@@ -225,11 +220,11 @@ def indexed(seq):
 API = {
    'auth': {
        'checkToken':
-           [('auth_token',), ()],
+           [('auth_token'), ()],
        'getFrob':
            [(), ()],
        'getToken':
-           [('frob',), ()]
+           [('frob'), ()]
        },
     'contacts': {
         'add':
@@ -253,7 +248,7 @@ API = {
         },
     'lists': {
         'add':
-            [('timeline', 'name',), ('filter',)],
+            [('timeline', 'name'), ('filter'), ()],
         'archive':
             [('timeline', 'list_id'), ()],
         'delete':
@@ -261,11 +256,11 @@ API = {
         'getList':
             [(), ()],
         'setDefaultList':
-            [('timeline'), ('list_id')],
+            [('timeline'), ('list_id'), ()],
         'setName':
             [('timeline', 'list_id', 'name'), ()],
         'unarchive':
-            [('timeline',), ('list_id',)]
+            [('timeline'), ('list_id'), ()],
         },
     'locations': {
         'getList':

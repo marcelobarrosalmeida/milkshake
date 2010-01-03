@@ -45,7 +45,67 @@ __version__ = "alpha1"
 __copyright__ = "Copyright (c) 2009- Javsmo/Marcelo"
 __license__ = "GPLv3"
 
-   
+def display_in_browser(url):
+    b = 'BrowserNG.exe'
+    e32.start_exe(b, ' "4 %s"' %url, 1)
+
+class RTMSync():
+    rtm = None
+    api_key = u""
+    secret= u""
+    token=None
+    def __init__(self, api_key, secret, token=None):
+        self.rtm = rtm.RTM(api_key, secret, token)
+        if (token == None):
+            self.rtm_auth()
+    
+    def rtm_auth(self):
+        appuifw.query(u"""You'll be redirected to browser to log on 
+your Remember The Milk account. When you complete this authentication,
+ please, close the browser to return to this application.""", "query")
+        try:
+            authURL = myRTM.getAuthURL()
+            display_in_browser(authURL)
+            self.token = myRTM.getToken()
+        except:
+            note(u"Authentication error", "error")
+            self.token = None
+    
+    def get_lists(self):
+        try:
+            l = self.rtm.lists.getList()
+            self.lists = [{"archived":l.archived, 
+                          "deleted":l.deleted, 
+                          "id":l.id, 
+                          "locked":l.locked, 
+                          "name":l.name, 
+                          "position":l.position, 
+                          "smart":l.smart, 
+                          "sort_order":l.sort_order} for l in l.lists.list]
+        except:
+            note(u"Cannot download List data.", "error")
+    
+    def get_tasks(self, plist_id = None, pfilter=""):
+        try:
+            if (plist_id == None):
+                t = self.rtm.tasks.getList(filter=pfilter)
+            else:
+                t = self.rtm.tasks.getList(list_id=plist_id, filter=pfilter)
+            
+            self.tasks[list_id] = [{"created":t.created, 
+                                   "id":t.id, 
+                                   "location_id":t.location_id, 
+                                   "modified":t.modified, 
+                                   "name":t.name, 
+                                   "notes":t.notes, 
+                                   "participants":t.participants, 
+                                   "source":t.source, 
+                                   "tags":t.tags, 
+                                   "task":t.task, 
+                                   "url":t.url} for t in t.tasks.list.taskseries]
+        except:
+            note(u"Cannot download Tasks.", "error")
+    
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
