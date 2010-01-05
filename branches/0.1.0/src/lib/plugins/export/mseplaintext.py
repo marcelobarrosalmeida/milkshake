@@ -28,30 +28,50 @@ under certain conditions; see about box for details.
 from mseplugin import *
 import time
 import os
+import e32
+from appuifw import popup_menu, note
+from taskutil import Task
 
-class PlainText(MSExportPlugin):
+class PlainText(MSExportPlugin,milkshake):
     def __init__(self):
+        MSExportPlugin.__init__(milkshake)
         self.__name = u"Plain text export plugin"
-        self.__version = "0.1.0"
+        self.__version = u"0.1.0"
+        self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
     
     def get_name(self):
         return self.__name
     
     def get_version(self):
         return self.__version
+
+    def get_author(self):
+        return self.__author
+
+    def __uni2utf8(self,s):
+        return s.encode('utf-8')
+
+    def __tmr2utf8(self,v):
+        return self.__uni2utf8(unicode(time.strftime("%d/%b/%Y",time.localtime(v))))
     
     def run(self,tlists):
-        filename = u"milkshake_" + time.strftime("%Y%m%d_%H%M%S", time.localtime()) + u".txt"
-        f = open(filename,'wt')
-        for lstname,tasks in tlists.iteritems():
-            name = lstname.encode('utf-8')
-            f.write(name + "\n" + "="*len(name) + "\n")
-            for task in tasks:
-                for k,v in task.iteritems():
-                    f.write(k.encode('utf-8') + ": " + unicode(v).encode('utf-8') + "\n")
-                f.write("\n")
-
-        f.close()
+        op = popup_menu(e32.drive_list(),u"Export to drv:")
+        if op is not None:
+            filename = os.path.join(op,u"milkshake_" + \
+                                    time.strftime("%Y%m%d_%H%M%S", time.localtime()) + \
+                                    u".txt")
+            f = open(filename,'wt')
+            for lstname,tasks in tlists.iteritems():
+                name = self.__uni2utf8(lstname)
+                f.write(name + "\n" + "="*len(name) + "\n")
+                for task in tasks:
+                    for k,v in task.iteritems():
+                        if k in ('start_date','due_date') and tsk['type'] == Task.FIXED_DATE:
+                            f.write(self.__uni2utf8(k) + ": " + self.__tmr2utf8(v) + "\n")
+                        else:
+                            f.write(self.__uni2utf8(k) + ": " + self.__uni2utf8(unicode(v)) + "\n")
+                    f.write("\n")
+            f.close()
 
                     
    
