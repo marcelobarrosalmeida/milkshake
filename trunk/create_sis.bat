@@ -45,7 +45,7 @@ if not exist openssl.exe    xcopy /E "%PYS60DIR%\openssl.exe" .
 %PYTHON% ensymble.py py2sis %OPTS% "%TMPDIR%" "%APPNAME%-%1.sis"
 
 echo "Zipping source files"
-%ZIP% a -r -tzip %APPNAME%-%1-src.zip src\*.py src\*.mif src\*.png
+%ZIP% a -r -tzip %APPNAME%-%1-src.zip src
 
 echo "Erasing"
 rmdir /s/q "%TMPDIR%"
