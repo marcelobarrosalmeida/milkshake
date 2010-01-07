@@ -31,92 +31,32 @@ import pickle
 import os
 import e32
 import sysinfo
+import sys
 from about import About
 from taskutil import *
 from edittask import EditTask
 from settings import MSSettings, Config
 import copy
 import time
+from mseplugin import MSExportPlugin
 
 __all__ = [ "Milkshake" ]
-__author__ = "José Antonio (javsmo@gmail.com) and "
-__author__ = __author__ + "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
-__version__ = "alpha1"
+__author__  = "José Antonio (javsmo@gmail.com) and "
+__author__ += "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
+__version__ = "0.1.0"
 __copyright__ = "Copyright (c) 2009- Javsmo/Marcelo"
 __license__ = "GPLv3"
-
-def display_in_browser(url):
-    b = 'BrowserNG.exe'
-    e32.start_exe(b, ' "4 %s"' %url, 1)
-
-class RTMSync():
-    rtm = None
-    api_key = u""
-    secret= u""
-    token=None
-    def __init__(self, api_key, secret, token=None):
-        self.rtm = rtm.RTM(api_key, secret, token)
-        if (token == None):
-            self.rtm_auth()
-    
-    def rtm_auth(self):
-        appuifw.query(u"""You'll be redirected to browser to log on 
-your Remember The Milk account. When you complete this authentication,
- please, close the browser to return to this application.""", "query")
-        try:
-            authURL = myRTM.getAuthURL()
-            display_in_browser(authURL)
-            self.token = myRTM.getToken()
-        except:
-            note(u"Authentication error", "error")
-            self.token = None
-    
-    def get_lists(self):
-        try:
-            l = self.rtm.lists.getList()
-            self.lists = [{"archived":l.archived, 
-                          "deleted":l.deleted, 
-                          "id":l.id, 
-                          "locked":l.locked, 
-                          "name":l.name, 
-                          "position":l.position, 
-                          "smart":l.smart, 
-                          "sort_order":l.sort_order} for l in l.lists.list]
-        except:
-            note(u"Cannot download List data.", "error")
-    
-    def get_tasks(self, plist_id = None, pfilter=""):
-        try:
-            if (plist_id == None):
-                t = self.rtm.tasks.getList(filter=pfilter)
-            else:
-                t = self.rtm.tasks.getList(list_id=plist_id, filter=pfilter)
-            
-            self.tasks[list_id] = [{"created":t.created, 
-                                   "id":t.id, 
-                                   "location_id":t.location_id, 
-                                   "modified":t.modified, 
-                                   "name":t.name, 
-                                   "notes":t.notes, 
-                                   "participants":t.participants, 
-                                   "source":t.source, 
-                                   "tags":t.tags, 
-                                   "task":t.task, 
-                                   "url":t.url} for t in t.tasks.list.taskseries]
-        except:
-            note(u"Cannot download Tasks.", "error")
-    
+   
 class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
     MSICONNAME = u""
-    MSVERSION = u"0.0.7"
-    APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
-    SECRET = u"67b5855d779f0d37"
+    MSVERSION = u"0.1.0"
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
         Milkshake.MSICONNAME = os.path.join(path,u"milkshake.mif")
+        sys.path.append(os.path.join(Milkshake.MSDEFDIR,u"plugins",u"export"))
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
@@ -127,6 +67,7 @@ class Milkshake(Application):
         self.main_menu = [(u"Syncronize ...",self.sync_dlg),
                           (u"Settings ...",self.settings_dlg),
                           (u"Save",self.save_cfg),
+                          (u"Export ...",self.plugins_export),
                           (u"About", self.about_ms),
                           (u"Exit", self.close_app)]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])
@@ -376,6 +317,48 @@ class Milkshake(Application):
 
     def undone_task(self,lst,n):
         self.done_undone_task(lst,n,0)
+
+
+    def try_import(self,module):            
+        try:
+            __import__(module)
+        except:
+            return False
+        else:
+            return True
+
+    def load_plugins(self,pdir):
+        plugins = []
+        try:
+            files = os.listdir(pdir)
+        except:
+            return plugins
+        
+        [ self.try_import(f[:f.rfind(".py")]) for f in files if f.endswith(".py") ]
+
+        for plugin in MSExportPlugin.__subclasses__():
+            if plugin not in plugins:
+                # instanciate and add the plugin to the program
+                plugins.append(plugin(self))
+                #plugins[plugin].run(self.list_mngr)
+        return plugins
+    
+    def plugins_export(self):
+        pdir = os.path.join(Milkshake.MSDEFDIR,u"plugins",u"export")
+        plugins = self.load_plugins(pdir)
+        if plugins:
+            names = [ p.get_name() for p in plugins ]
+            op = popup_menu(names,u"Select plugin:")
+            if op is not None:
+                try:
+                    plugins[op].run(self.list_mngr)
+                except:
+                    note(u"Impossible to run this plugin","error")
+                else:
+                    note(u"Exported!","info")
+            del plugins
+        else:
+            note(u"You do not have any export plugin.","info")
 
     def about_ms(self):
         def cbk():

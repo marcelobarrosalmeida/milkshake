@@ -16,7 +16,7 @@ CAPBLS=NetworkServices+LocalServices+ReadUserData+WriteUserData+UserEnvironment
 SRCDIR=src
 TMPDIR=src.tmp
 ICON=img/none.svg
-PYS60DIR=/home/marcelo/Desktop/PyS60/PythonForS60
+PYS60DIR=../PythonForS60
 OPTS="--verbose --version=$1 --appname=\"$APPNAME\" --extrasdir=extras --heapsize=4k,5M --caps=$CAPBLS --icon=$ICON"
 
 echo "Populating temp dir"
@@ -27,15 +27,12 @@ fi
 
 mkdir -p $TMPDIR/extras/data/python/milkshakedir/
 
-cp  $SRCDIR/lib/about.py       $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/milkshake.py   $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/taskutil.py    $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/settings.py    $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/window.py      $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/taskutil.py    $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/edittask.py    $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/lib/milkshake.mif  $TMPDIR/extras/data/python/milkshakedir/
-cp  $SRCDIR/default.py         $TMPDIR/
+cp -a $SRCDIR/lib/*       $TMPDIR/extras/data/python/milkshakedir/
+cp -a $SRCDIR/plugin       $TMPDIR/extras/data/python/milkshakedir/
+cp    $SRCDIR/default.py  $TMPDIR/
+
+rm   $TMPDIR/extras/data/python/milkshakedir/test.py
+find $TMPDIR/ -name .svn -exec rm -fR {} \;
 
 if [ ! -d ./module-repo/ ]; then
     cp -a $PYS60DIR/module-repo .

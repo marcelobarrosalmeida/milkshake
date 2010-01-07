@@ -28,6 +28,12 @@ under certain conditions; see about box for details.
 __all__ = [ "MSExportPlugin" ]
 
 class MSExportPlugin(object):
+    """ Export plugin base class
+    """
+    def __init__(self,milkshake):
+        """ Init the plugin, saving a reference to milkshake
+        """
+        self.__ms = milkshake
     
     def get_name(self):
         """ Returns the plugin name. Must be a unicode string
@@ -36,6 +42,11 @@ class MSExportPlugin(object):
     
     def get_version(self):
         """ Returns the plugin version. Must be a unicode string
+        """
+        raise NotImplementedError
+
+    def get_author(self):
+        """ Returns the plugin author. Must be a unicode string
         """
         raise NotImplementedError
     
