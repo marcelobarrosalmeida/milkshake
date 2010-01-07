@@ -57,6 +57,7 @@ class Milkshake(Application):
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
         Milkshake.MSICONNAME = os.path.join(path,u"milkshake.mif")
         sys.path.append(os.path.join(Milkshake.MSDEFDIR,u"plugins",u"export"))
+        sys.path.append(os.path.join(Milkshake.MSDEFDIR,u"plugins",u"import"))
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
@@ -64,10 +65,11 @@ class Milkshake(Application):
         self.load_cfg()
         self.load_icons()
         self.tabs_active = False
-        self.main_menu = [(u"Syncronize ...",self.sync_dlg),
+        self.main_menu = [(u"Save",self.save_cfg),
                           (u"Settings ...",self.settings_dlg),
-                          (u"Save",self.save_cfg),
                           (u"Export ...",self.plugins_export),
+                          (u"Import ...",self.plugins_import),
+                          (u"Syncronize ...",self.sync_dlg),
                           (u"About", self.about_ms),
                           (u"Exit", self.close_app)]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])
@@ -342,9 +344,9 @@ class Milkshake(Application):
                 plugins.append(plugin(self))
                 #plugins[plugin].run(self.list_mngr)
         return plugins
-    
-    def plugins_export(self):
-        pdir = os.path.join(Milkshake.MSDEFDIR,u"plugins",u"export")
+
+    def run_plugins(self,plugin_type):
+        pdir = os.path.join(Milkshake.MSDEFDIR,u"plugins",plugin_type)
         plugins = self.load_plugins(pdir)
         if plugins:
             names = [ p.get_name() for p in plugins ]
@@ -353,13 +355,17 @@ class Milkshake(Application):
                 try:
                     plugins[op].run(self.list_mngr)
                 except:
-                    note(u"Impossible to run this plugin","error")
-                else:
-                    note(u"Exported!","info")
+                    note(u"Impossible to run plugin " + plugins[op].get_name(),"error")
             del plugins
         else:
-            note(u"You do not have any export plugin.","info")
+            note(u"You do not have any %s plugin " % plugin_type,"info")
+            
+    def plugins_export(self):
+        self.run_plugins(u"export")
 
+    def plugins_import(self):
+        self.run_plugins(u"import")
+    
     def about_ms(self):
         def cbk():
             self.refresh()

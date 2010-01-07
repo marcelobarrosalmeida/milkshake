@@ -25,3 +25,35 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
+__all__ = [ "MSImportPlugin" ]
+class MSImportPlugin(object):
+    """ Import plugin base class
+    """
+    def __init__(self,milkshake):
+        """ Init the plugin, saving a reference to milkshake
+        """
+        self.milkshake = milkshake
+    
+    def get_name(self):
+        """ Returns the plugin name. Must be a unicode string
+        """
+        raise NotImplementedError
+    
+    def get_version(self):
+        """ Returns the plugin version. Must be a unicode string
+        """
+        raise NotImplementedError
+
+    def get_author(self):
+        """ Returns the plugin author. Must be a unicode string
+        """
+        raise NotImplementedError
+    
+    def run(self,task_lists):
+        """ Plugin code. Do whatever you want to export the task_lists and
+            return True, False or raise an exception. task_list is dict where
+            keys are list names and values are arrays of tasks. Only standard
+            types are used.
+        """
+        raise NotImplementedError
+
