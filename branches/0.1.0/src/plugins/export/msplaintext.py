@@ -25,18 +25,17 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-from mseplugin import *
+from msplugin import *
 import time
 import os
 import e32
-import shutil
 from appuifw import popup_menu, note
 from taskutil import Task
 
-class CreateBackup(MSExportPlugin):
+class PlainText(MSPlugin):
     def __init__(self,milkshake=None):
-        MSExportPlugin.__init__(self,milkshake)
-        self.__name = u"Create backup plugin"
+        MSPlugin.__init__(self,milkshake)
+        self.__name = u"Plain text export plugin"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
     
@@ -49,19 +48,32 @@ class CreateBackup(MSExportPlugin):
     def get_author(self):
         return self.__author
 
-    def run(self,tlists):
-        yn = popup_menu([u"Yes",u"No"],u"Save Milkshake ?")
-        if yn is None: return
-        if yn == 0: self.milkshake.save_cfg()
-            
-        op = popup_menu(e32.drive_list(),u"Backup into drive:")
-        if op is None: return
-        
-        filename = os.path.join(e32.drive_list()[op],u"milkshake_backup" + \
-                                time.strftime("%Y%m%d_%H%M%S", time.localtime()) + \
-                                u".bin")
-        shutil.copy(Milkshake.MSDBNAME,filename)
-        note(u"Backup saved into " + filename,"info")
+    def __uni2utf8(self,s):
+        return s.encode('utf-8')
+
+    def __tmr2utf8(self,v):
+        return self.__uni2utf8(unicode(time.strftime("%d/%b/%Y",time.localtime(v))))
+    
+    def run(self):
+        op = popup_menu(e32.drive_list(),u"Export to drive:")
+        if op is not None:
+            filename = os.path.join(e32.drive_list()[op],u"milkshake_" + \
+                                    time.strftime("%Y%m%d_%H%M%S", time.localtime()) + \
+                                    u".txt")
+            f = open(filename,'wt')
+            for lstname,tasks in self.milkshake.list_mngr.iteritems():
+                name = self.__uni2utf8(lstname)
+                f.write(name + "\n" + "="*len(name) + "\n")
+                for task in tasks:
+                    for k in Task.DEF_VALS:
+                        v = task[k]
+                        if k in ('start_date','due_date') and task['type'] == Task.FIXED_DATE:
+                            f.write(self.__uni2utf8(k) + ": " + self.__tmr2utf8(v) + "\n")
+                        else:
+                            f.write(self.__uni2utf8(k) + ": " + self.__uni2utf8(unicode(v)) + "\n")
+                    f.write("\n")
+            f.close()
+            note(u"Tasks exported into file " + filename,"info")
 
                     
    

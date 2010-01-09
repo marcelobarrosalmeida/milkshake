@@ -25,7 +25,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-from msiplugin import *
+from msplugin import *
 import time
 import os
 import e32
@@ -33,9 +33,9 @@ import shutil
 from appuifw import popup_menu, note
 from taskutil import Task
 
-class RestoreBackup(MSImportPlugin):
+class RestoreBackup(MSPlugin):
     def __init__(self,milkshake=None):
-        MSExportPlugin.__init__(self,milkshake)
+        MSPlugin.__init__(self,milkshake)
         self.__name = u"Restore backup plugin"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
@@ -49,7 +49,7 @@ class RestoreBackup(MSImportPlugin):
     def get_author(self):
         return self.__author
 
-    def run(self,tlists):
+    def run(self):
         pass
                     
    
