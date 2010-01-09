@@ -38,7 +38,7 @@ from edittask import EditTask
 from settings import MSSettings, Config
 import copy
 import time
-from mseplugin import MSExportPlugin
+from msplugin import MSPlugin
 
 __all__ = [ "Milkshake" ]
 __author__  = "José Antonio (javsmo@gmail.com) and "
@@ -338,7 +338,7 @@ class Milkshake(Application):
         
         [ self.try_import(f[:f.rfind(".py")]) for f in files if f.endswith(".py") ]
 
-        for plugin in MSExportPlugin.__subclasses__():
+        for plugin in MSPlugin.__subclasses__():
             if plugin not in plugins:
                 # instanciate and add the plugin to the program
                 plugins.append(plugin(self))
@@ -353,7 +353,7 @@ class Milkshake(Application):
             op = popup_menu(names,u"Select plugin:")
             if op is not None:
                 try:
-                    plugins[op].run(self.list_mngr)
+                    plugins[op].run()
                 except:
                     note(u"Impossible to run plugin " + plugins[op].get_name(),"error")
             del plugins
