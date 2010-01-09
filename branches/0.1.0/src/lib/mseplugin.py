@@ -33,7 +33,7 @@ class MSExportPlugin(object):
     def __init__(self,milkshake):
         """ Init the plugin, saving a reference to milkshake
         """
-        self.__ms = milkshake
+        self.milkshake = milkshake
     
     def get_name(self):
         """ Returns the plugin name. Must be a unicode string

@@ -31,6 +31,7 @@ import pickle
 import os
 import e32
 import sysinfo
+import sys
 from about import About
 from taskutil import *
 from edittask import EditTask
@@ -40,8 +41,8 @@ import time
 from mseplugin import MSExportPlugin
 
 __all__ = [ "Milkshake" ]
-__author__ = "José Antonio (javsmo@gmail.com) and "
-__author__ = __author__ + "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
+__author__  = "José Antonio (javsmo@gmail.com) and "
+__author__ += "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
 __version__ = "0.1.0"
 __copyright__ = "Copyright (c) 2009- Javsmo/Marcelo"
 __license__ = "GPLv3"
@@ -50,13 +51,13 @@ class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
     MSICONNAME = u""
-    MSVERSION = u"0.0.7"
-    APIKEY = u"c1a983bba360889c5089d5ccf1a94e4a"
-    SECRET = u"67b5855d779f0d37"
+    MSVERSION = u"0.1.0"
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
         Milkshake.MSICONNAME = os.path.join(path,u"milkshake.mif")
+        sys.path.append(os.path.join(Milkshake.MSDEFDIR,u"plugins",u"export"))
+        sys.path.append(os.path.join(Milkshake.MSDEFDIR,u"plugins",u"import"))
         app.screen = 'normal'
         app.directional_pad = False
         self.list_mngr = ListManager()
@@ -64,9 +65,11 @@ class Milkshake(Application):
         self.load_cfg()
         self.load_icons()
         self.tabs_active = False
-        self.main_menu = [(u"Syncronize ...",self.sync_dlg),
+        self.main_menu = [(u"Save",self.save_cfg),
                           (u"Settings ...",self.settings_dlg),
-                          (u"Save",self.save_cfg),
+                          (u"Export ...",self.plugins_export),
+                          (u"Import ...",self.plugins_import),
+                          (u"Syncronize ...",self.sync_dlg),
                           (u"Export",self.plugin_export),
                           (u"About", self.about_ms),
                           (u"Exit", self.close_app)]
@@ -318,7 +321,6 @@ class Milkshake(Application):
     def undone_task(self,lst,n):
         self.done_undone_task(lst,n,0)
 
-
     def try_import(self,module):            
         try:
             __import__(module)
@@ -328,21 +330,42 @@ class Milkshake(Application):
             return True
 
     def load_plugins(self,pdir):
-        files = os.listdir(pdir)
-        [ try_import(f[:f.rfind(".py")]) for f in files if f.endswith(".py") ]
-
         plugins = []
+        try:
+            files = os.listdir(pdir)
+        except:
+            return plugins
+        
+        [ self.try_import(f[:f.rfind(".py")]) for f in files if f.endswith(".py") ]
+
         for plugin in MSExportPlugin.__subclasses__():
             if plugin not in plugins:
                 # instanciate and add the plugin to the program
                 plugins.append(plugin(self))
                 #plugins[plugin].run(self.list_mngr)
         return plugins
-    
-    def plugin_export(self):
-        pdir = os.path.join(Milkshake.MSDEFDIR,u"plugin",u"export")
-        self.load_plugins(pdir)
 
+    def run_plugins(self,plugin_type):
+        pdir = os.path.join(Milkshake.MSDEFDIR,u"plugins",plugin_type)
+        plugins = self.load_plugins(pdir)
+        if plugins:
+            names = [ p.get_name() for p in plugins ]
+            op = popup_menu(names,u"Select plugin:")
+            if op is not None:
+                try:
+                    plugins[op].run(self.list_mngr)
+                except:
+                    note(u"Impossible to run plugin " + plugins[op].get_name(),"error")
+            del plugins
+        else:
+            note(u"You do not have any %s plugin " % plugin_type,"info")
+            
+    def plugins_export(self):
+        self.run_plugins(u"export")
+
+    def plugins_import(self):
+        self.run_plugins(u"import")
+    
     def about_ms(self):
         def cbk():
             self.refresh()
