@@ -35,7 +35,7 @@ from filesel import FileSel
 class RestoreBackup(MSImportPlugin):
     def __init__(self,milkshake=None):
         MSImportPlugin.__init__(self,milkshake)
-        self.__name = u"Restore backup plugin"
+        self.__name = u"Restore backup"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
     

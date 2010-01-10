@@ -65,11 +65,12 @@ class Milkshake(Application):
         self.load_cfg()
         self.load_icons()
         self.tabs_active = False
-        self.main_menu = [(u"Save",self.save_cfg),
-                          (u"Settings ...",self.settings_dlg),
-                          (u"Export ...",self.plugins_export),
-                          (u"Import ...",self.plugins_import),
-                          (u"Syncronize ...",self.plugins_sync),
+        self.main_menu = [(u"Settings ...",self.settings_dlg),
+                          (u"Plugins", (
+                              (u"Export ...",self.plugins_export),
+                              (u"Import ...",self.plugins_import),
+                              (u"Syncronize ...",self.plugins_sync))),
+                          (u"Save",self.save_cfg),
                           (u"About", self.about_ms),
                           (u"Exit", self.close_app)]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])

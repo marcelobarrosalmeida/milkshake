@@ -36,7 +36,7 @@ from taskutil import Task
 class CreateBackup(MSExportPlugin):
     def __init__(self,milkshake=None):
         MSExportPlugin.__init__(self,milkshake)
-        self.__name = u"Create backup plugin"
+        self.__name = u"Create backup"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
     

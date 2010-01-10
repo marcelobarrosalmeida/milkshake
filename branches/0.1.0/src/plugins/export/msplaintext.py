@@ -35,7 +35,7 @@ from taskutil import Task
 class PlainText(MSExportPlugin):
     def __init__(self,milkshake=None):
         MSExportPlugin.__init__(self,milkshake)
-        self.__name = u"Plain text export plugin"
+        self.__name = u"Plain text export"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
     
