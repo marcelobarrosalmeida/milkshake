@@ -353,8 +353,12 @@ class Milkshake(Application):
             if op is not None:
                 try:
                     plugins[op].run()
-                except:
+                except Exception, e:
                     note(u"Impossible to run " + plugins[op].get_name(),"error")
+                    import traceback
+                    e1,e2,e3 = sys.exc_info()
+                    msg = repr(e) + "\n" + str(traceback.format_exception(e1,e2,e3))
+                    open("e:\\milkshake_dump.txt","wt").write(msg.encode("utf8"))
             del plugins
             self.update_lists()
         else:
