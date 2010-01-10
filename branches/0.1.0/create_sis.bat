@@ -25,10 +25,10 @@ SET OPTS=--verbose --version="%1" --appname="%APPNAME%" ^
 REM --icon="%ICON%"
 echo "Populating temp dir"
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
-mkdir %TMPDIR%\extras\data\python\milkshakedir
+mkdir %TMPDIR%\extras\data\python\milkshakedir\plugins
 
-copy  %SRCDIR%\lib\*              %TMPDIR%\extras\data\python\milkshakedir\
-copy  /s %SRCDIR%\lib\plugins     %TMPDIR%\extras\data\python\milkshakedir\
+copy  %SRCDIR%\lib\               %TMPDIR%\extras\data\python\milkshakedir\
+xcopy /S %SRCDIR%\plugins         %TMPDIR%\extras\data\python\milkshakedir\plugins\
 copy  %SRCDIR%\lib\milkshake.mif  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\default.py         %TMPDIR%\
 
@@ -41,9 +41,6 @@ if not exist openssl.exe    xcopy /E "%PYS60DIR%\openssl.exe" .
 
 echo "Zipping source files"
 %ZIP% a -r -tzip %APPNAME%-%1-src.zip src
-
-echo "Erasing"
-rmdir /s/q "%TMPDIR%"
 
 goto end
 
