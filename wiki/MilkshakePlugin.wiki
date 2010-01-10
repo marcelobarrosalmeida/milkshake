@@ -42,15 +42,13 @@ These first three methods are used to identification purposes and for user inter
 
 For your convenience, a reference to Milkshake is provided. You need to initialize and use it carefully, as in the next code snippet:
 
-<pre>
+<code>
 from msplugin import MSExportPlugin
 
 class MyExportPlugin(MSExportPlugin):
     def __init__(self,milkshake=None):
         MSExportPlugin.__init__(self,milkshake)
         # self.milkshake is the reference to Milkshake
-</pre>
+</code>
 
-For implementing a plugin you need to create a new class using the proper inheritance from MSExportPlugin, MSImportPlugin or MSSyncPlugin. After, implement all required interfaces, including the *run* method. Finally, copy your file into proper directory (export, import or sync). Use Milkshake menus to run your plugin. As an example, see the [http://code.google.com/p/milkshake/source/browse/branches/0.1.0/src/plugins/export/msexpbackup.py export backup plugin].
-
-
+For implementing a plugin you need to create a new class using the proper inheritance from MSExportPlugin, MSImportPlugin or MSSyncPlugin. After, implement all required interfaces, including the *run* method. Finally, copy your file into the proper directory (export, import or sync). Use Milkshake menus to run your plugin. As an example, see the [http://code.google.com/p/milkshake/source/browse/branches/0.1.0/src/plugins/export/msexpbackup.py export backup plugin].
