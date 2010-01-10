@@ -49,7 +49,7 @@ class RestoreBackup(MSImportPlugin):
         return self.__author
 
     def run(self):
-        bkp = FileSel(mask="*.bin").run()
+        bkp = FileSel(mask=r".*\.bin").run()
         if bkp is not None:
             yn = popup_menu([u"No",u"Yes"],u"Overwrite current tasks?")
             if yn is not None:
