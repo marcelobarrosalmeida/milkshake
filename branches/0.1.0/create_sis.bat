@@ -27,13 +27,8 @@ echo "Populating temp dir"
 if exist "%TMPDIR%" rmdir /s /q "%TMPDIR%"
 mkdir %TMPDIR%\extras\data\python\milkshakedir
 
-copy  %SRCDIR%\lib\about.py       %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\milkshake.py   %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\taskutil.py    %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\settings.py    %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\window.py      %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\taskutil.py    %TMPDIR%\extras\data\python\milkshakedir
-copy  %SRCDIR%\lib\edittask.py    %TMPDIR%\extras\data\python\milkshakedir
+copy  %SRCDIR%\lib\*              %TMPDIR%\extras\data\python\milkshakedir\
+copy  /s %SRCDIR%\lib\plugins     %TMPDIR%\extras\data\python\milkshakedir\
 copy  %SRCDIR%\lib\milkshake.mif  %TMPDIR%\extras\data\python\milkshakedir
 copy  %SRCDIR%\default.py         %TMPDIR%\
 
