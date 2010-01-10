@@ -1,0 +1,56 @@
+#summary Milkshake plugins
+
+= How plugins works =
+
+Milkshake uses a plugin architecture for exchanging data and making conversions, avoiding any sis recompilation and encouraging new interfaces for diverse web services.  
+
+Plugins are divided in three categories:
+
+ * *export*: It is used to convert Milkshake data into external formats, like text, html, xml or just backup.
+ * *import*: It is used to convert external formats into Milkshake data or just for importing backups.
+ * *sync*: It is used to exchange data between Milkshake and external web services like Remember the Milk.
+
+= Plugins structure =
+
+When Milkshake is installed, the following directory structure is created under folder _\data\python\milkshakedir\_:
+
+<pre>
+plugins-+--export
+        +--import
+        +--sync
+</pre>
+
+Plugins are placed under corresponding directory.
+
+= Creating a new plugin =
+
+Each plugin category has its own class, as defined in *msplugin.py*:
+
+ * *MSExportPlugin*: base class for export plugins
+ * *MSImportPlugin*: base class for import plugins
+ * *MSSyncPlugin*: base class for sync plugins
+
+These classes have some methods that need to be implemented:
+
+ * *get_name*: It returns the plugin name, in unicode.
+ * *get_version*: It returns the plugin version, in unicode.
+ * *get_author*: It returns the plugin author, in unicode.
+
+These first three methods are used to identification purposes and for user interaction. The next one is *run*, the real plugin action:
+
+ * run: The plugin action. It is called by Milkshake to execute the plugin code.
+
+For your convenience, a reference to Milkshake is provided. You need to initialize and use it carefully, as in the next code snippet:
+
+<pre>
+from msplugin import MSExportPlugin
+
+class MyExportPlugin(MSExportPlugin):
+    def __init__(self,milkshake=None):
+        MSExportPlugin.__init__(self,milkshake)
+        # self.milkshake is the reference to Milkshake
+</pre>
+
+For implementing a plugin you need to create a new class using the proper inheritance from MSExportPlugin, MSImportPlugin or MSSyncPlugin. After, implement all required interfaces, including the *run* method. Finally, copy your file into proper directory (export, import or sync). Use Milkshake menus to run your plugin. As an example, see the [http://code.google.com/p/milkshake/source/browse/branches/0.1.0/src/plugins/export/msexpbackup.py export backup plugin].
+
+
