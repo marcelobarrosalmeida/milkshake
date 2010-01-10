@@ -28,10 +28,9 @@ fi
 mkdir -p $TMPDIR/extras/data/python/milkshakedir/
 
 cp -a $SRCDIR/lib/*       $TMPDIR/extras/data/python/milkshakedir/
-cp -a $SRCDIR/plugin       $TMPDIR/extras/data/python/milkshakedir/
+cp -a $SRCDIR/plugins     $TMPDIR/extras/data/python/milkshakedir/
 cp    $SRCDIR/default.py  $TMPDIR/
 
-rm   $TMPDIR/extras/data/python/milkshakedir/test.py
 find $TMPDIR/ -name .svn -exec rm -fR {} \;
 
 if [ ! -d ./module-repo/ ]; then
@@ -50,6 +49,7 @@ $PYTHON ensymble.py py2sis $OPTS "$TMPDIR" "$APPNAME-$1.sis"
 
 echo "Zipping source files"
 tar --exclude=.svn -cvzf $APPNAME-$1-tar.gz src
+zip -r $APPNAME-$1.zip src -x .svn
 
 echo "Erasing"
 rm -fR $TMPDIR

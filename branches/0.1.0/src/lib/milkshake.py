@@ -38,7 +38,7 @@ from edittask import EditTask
 from settings import MSSettings, Config
 import copy
 import time
-from msplugin import MSPlugin
+from msplugin import *
 
 __all__ = [ "Milkshake" ]
 __author__  = "José Antonio (javsmo@gmail.com) and "
@@ -69,8 +69,7 @@ class Milkshake(Application):
                           (u"Settings ...",self.settings_dlg),
                           (u"Export ...",self.plugins_export),
                           (u"Import ...",self.plugins_import),
-                          (u"Syncronize ...",self.sync_dlg),
-                          (u"Export",self.plugin_export),
+                          (u"Syncronize ...",self.plugins_sync),
                           (u"About", self.about_ms),
                           (u"Exit", self.close_app)]
         Application.__init__(self, u"Milkshake", Listbox([(u"",u"")],lambda:None), [])
@@ -101,6 +100,12 @@ class Milkshake(Application):
     def edit_tasklist(self):
         self.tabs_active = False
         self.update_lists()        
+
+    def get_def_task_list(self):
+        if self.config['single_row']:
+            return [(u"Press select to add tasks",self.icons["none"])]
+        else:
+            return [(u"Press select to add tasks",u"",self.icons["none"])]
         
     def get_def_task_list_mngr(self):
         lst = ListManager()
@@ -122,12 +127,6 @@ class Milkshake(Application):
                     m = u"No tasks"
                 lst.append((k,m))
         return lst
-
-    def get_def_task_list(self):
-        if self.config['single_row']:
-            return [(u"Press select to add tasks",self.icons["none"])]
-        else:
-            return [(u"Press select to add tasks",u"",self.icons["none"])]
         
     def get_icon(self,tsk):
         return self.icons["%d-%d" % (tsk["pri"],tsk["perc_done"])]
@@ -219,9 +218,6 @@ class Milkshake(Application):
         if op is not None:
             menu[op][1](lst,n)
         
-    def sync_dlg(self):
-        note(u"Soon as possible ! Please, wait.","info")
-
     def new_list(self,lst):
         nlst = query(u"List name:","text",lst)
         if nlst is not None:
@@ -329,25 +325,27 @@ class Milkshake(Application):
         else:
             return True
 
-    def load_plugins(self,pdir):
+    def load_plugins(self,pdir,subclasses):
         plugins = []
         try:
             files = os.listdir(pdir)
         except:
             return plugins
-        
+                
         [ self.try_import(f[:f.rfind(".py")]) for f in files if f.endswith(".py") ]
 
-        for plugin in MSPlugin.__subclasses__():
+        for plugin in subclasses():
             if plugin not in plugins:
                 # instanciate and add the plugin to the program
                 plugins.append(plugin(self))
-                #plugins[plugin].run(self.list_mngr)
         return plugins
 
     def run_plugins(self,plugin_type):
         pdir = os.path.join(Milkshake.MSDEFDIR,u"plugins",plugin_type)
-        plugins = self.load_plugins(pdir)
+        subclasses = { u"export":MSExportPlugin.__subclasses__,
+                       u"import":MSImportPlugin.__subclasses__,
+                       u"sync":MSSyncPlugin.__subclasses__  }
+        plugins = self.load_plugins(pdir,subclasses[plugin_type])
         if plugins:
             names = [ p.get_name() for p in plugins ]
             op = popup_menu(names,u"Select plugin:")
@@ -355,8 +353,9 @@ class Milkshake(Application):
                 try:
                     plugins[op].run()
                 except:
-                    note(u"Impossible to run plugin " + plugins[op].get_name(),"error")
+                    note(u"Impossible to run " + plugins[op].get_name(),"error")
             del plugins
+            self.update_lists()
         else:
             note(u"You do not have any %s plugin " % plugin_type,"info")
             
@@ -365,6 +364,9 @@ class Milkshake(Application):
 
     def plugins_import(self):
         self.run_plugins(u"import")
+
+    def plugins_sync(self):
+        self.run_plugins(u"sync")
     
     def about_ms(self):
         def cbk():

@@ -25,17 +25,16 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-from msplugin import *
-import time
-import os
-import e32
+from msplugin import MSImportPlugin
+from appuifw import note, popup_menu
+from taskutil import *
 import shutil
-from appuifw import popup_menu, note
-from taskutil import Task
+import time
+from filesel import FileSel
 
-class RestoreBackup(MSPlugin):
+class RestoreBackup(MSImportPlugin):
     def __init__(self,milkshake=None):
-        MSPlugin.__init__(self,milkshake)
+        MSImportPlugin.__init__(self,milkshake)
         self.__name = u"Restore backup plugin"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
@@ -50,6 +49,17 @@ class RestoreBackup(MSPlugin):
         return self.__author
 
     def run(self):
-        pass
+        bkp = FileSel(mask="*.bin").run()
+        if bkp is not None:
+            yn = popup_menu([u"No",u"Yes"],u"Overwrite current tasks?")
+            if yn is not None:
+                if yn == 1:
+                    oldbin = self.milkshake.MSDBNAME + u"_" + \
+                             time.strftime("%Y%m%d_%H%M%S", time.localtime())
+                    shutil.move(self.milkshake.MSDBNAME,oldbin)
+                    shutil.copy(bkp,self.milkshake.MSDBNAME)
+                    self.milkshake.list_mngr = ListManager()
+                    self.milkshake.load_cfg()
+                
                     
    

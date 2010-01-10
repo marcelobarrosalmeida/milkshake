@@ -25,7 +25,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-__all__ = [ "MSPlugin" ]
+__all__ = [ "MSExportPlugin", "MSImportPlugin", "MSSyncPlugin" ]
 
 class MSPlugin(object):
     """ Plugin base class
@@ -55,3 +55,14 @@ class MSPlugin(object):
         """
         raise NotImplementedError
 
+class MSExportPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)
+        
+class MSImportPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)
+
+class MSSyncPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)

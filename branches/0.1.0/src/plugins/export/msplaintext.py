@@ -25,16 +25,16 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-from msplugin import *
+from msplugin import MSExportPlugin
 import time
 import os
 import e32
 from appuifw import popup_menu, note
 from taskutil import Task
 
-class PlainText(MSPlugin):
+class PlainText(MSExportPlugin):
     def __init__(self,milkshake=None):
-        MSPlugin.__init__(self,milkshake)
+        MSExportPlugin.__init__(self,milkshake)
         self.__name = u"Plain text export plugin"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"

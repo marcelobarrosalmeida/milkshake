@@ -25,7 +25,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-from msplugin import *
+from msplugin import MSExportPlugin
 import time
 import os
 import e32
@@ -33,9 +33,9 @@ import shutil
 from appuifw import popup_menu, note
 from taskutil import Task
 
-class CreateBackup(MSPlugin):
+class CreateBackup(MSExportPlugin):
     def __init__(self,milkshake=None):
-        MSPlugin.__init__(self,milkshake)
+        MSExportPlugin.__init__(self,milkshake)
         self.__name = u"Create backup plugin"
         self.__version = u"0.1.0"
         self.__author = u"Marcelo Barros <marcelobarrosalmeida@gmail.com>"
@@ -57,10 +57,10 @@ class CreateBackup(MSPlugin):
         op = popup_menu(e32.drive_list(),u"Backup into drive:")
         if op is None: return
         
-        filename = os.path.join(e32.drive_list()[op],u"milkshake_backup" + \
+        filename = os.path.join(e32.drive_list()[op],u"milkshake_bkp_" + \
                                 time.strftime("%Y%m%d_%H%M%S", time.localtime()) + \
                                 u".bin")
-        shutil.copy(Milkshake.MSDBNAME,filename)
+        shutil.copy(self.milkshake.MSDBNAME,filename)
         note(u"Backup saved into " + filename,"info")
 
                     
