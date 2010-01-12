@@ -36,11 +36,7 @@ class Notepad(Dialog):
     def __init__(self, cbk, title, txt=u""):
         menu = [(u"Save", self.close_app),
                 (u"Discard", self.cancel_app)]
-        body = Text(txt)
-        body.color = (200,200,200)
-        body.style = STYLE_BOLD
-        Dialog.__init__(self, cbk, title, body, menu)
-
+        Dialog.__init__(self, cbk, title, Text(txt), menu)    
 
 class EditTask(Dialog):
     def __init__(self, cbk, tsk, lst, lst_pos, pos):

@@ -16,41 +16,29 @@ CAPBLS=NetworkServices+LocalServices+ReadUserData+WriteUserData+UserEnvironment
 SRCDIR=src
 TMPDIR=src.tmp
 ICON=img/none.svg
-PYS60DIR=../PythonForS60
+PYS60DIR=../PyS60-1.9.6
 OPTS="--verbose --version=$1 --appname=\"$APPNAME\" --extrasdir=extras --heapsize=4k,5M --caps=$CAPBLS --icon=$ICON"
 
 echo "Populating temp dir"
 
-if [ -d $TMPDIR ]; then
-    rm -fR $TMPDIR
-fi
+[ -d $TMPDIR ] &&  rm -fR $TMPDIR
 
 mkdir -p $TMPDIR/extras/data/python/milkshakedir/
 
 cp -a $SRCDIR/lib/*       $TMPDIR/extras/data/python/milkshakedir/
-cp -a $SRCDIR/plugin       $TMPDIR/extras/data/python/milkshakedir/
+cp -a $SRCDIR/plugins     $TMPDIR/extras/data/python/milkshakedir/
 cp    $SRCDIR/default.py  $TMPDIR/
 
-rm   $TMPDIR/extras/data/python/milkshakedir/test.py
 find $TMPDIR/ -name .svn -exec rm -fR {} \;
 
-if [ ! -d ./module-repo/ ]; then
-    cp -a $PYS60DIR/module-repo .
-fi 
-
-if [ ! -d ./templates/ ]; then
-    cp -a $PYS60DIR/templates .
-fi
-
-if [ ! -f ensymble.py ]; then
-    cp  $PYS60DIR/ensymble.py .
-fi
+[ ! -d ./module-repo/ ] && cp -a $PYS60DIR/module-repo .
+[ ! -d ./templates/   ] && cp -a $PYS60DIR/templates   .
+[ ! -f ensymble.py    ] && cp    $PYS60DIR/ensymble.py .
 
 $PYTHON ensymble.py py2sis $OPTS "$TMPDIR" "$APPNAME-$1.sis"
 
 echo "Zipping source files"
 tar --exclude=.svn -cvzf $APPNAME-$1-tar.gz src
+zip -r $APPNAME-$1.zip src -x \*.svn\*
 
-echo "Erasing"
-rm -fR $TMPDIR
 
