@@ -1,0 +1,17 @@
+
+= Some screenshots for 0.1.0 =
+
+[http://milkshake.googlecode.com/files/Screenshot0005.png]<br/>
+Initial screen, showing task lists
+
+[http://milkshake.googlecode.com/files/Screenshot0006.png]<br/>
+Tasks in task list "Nokia"
+
+[http://milkshake.googlecode.com/files/Screenshot0007.png]<br/>
+Plugins menu
+
+[http://milkshake.googlecode.com/files/Screenshot0008a.png]<br/>
+Export plugin sub-menu, showing detected plugins
+
+[http://milkshake.googlecode.com/files/Screenshot0008b.png]<br/>
+Settings screen
