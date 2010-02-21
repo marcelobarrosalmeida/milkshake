@@ -56,7 +56,11 @@ class RestoreBackup(MSImportPlugin):
                 if yn == 1:
                     oldbin = self.milkshake.MSDBNAME + u"_" + \
                              time.strftime("%Y%m%d_%H%M%S", time.localtime())
-                    shutil.move(self.milkshake.MSDBNAME,oldbin)
+                    try:
+                        shutil.move(self.milkshake.MSDBNAME,oldbin)
+                    except:
+                        # it will fail when milkshake.bin does not exist (fresh install)
+                        pass
                     shutil.copy(bkp,self.milkshake.MSDBNAME)
                     self.milkshake.list_mngr = ListManager()
                     self.milkshake.load_cfg()
