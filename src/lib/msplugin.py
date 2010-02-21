@@ -25,9 +25,10 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; see about box for details.
 """
 
-__all__ = [ "MSImportPlugin" ]
-class MSImportPlugin(object):
-    """ Import plugin base class
+__all__ = [ "MSExportPlugin", "MSImportPlugin", "MSSyncPlugin" ]
+
+class MSPlugin(object):
+    """ Plugin base class
     """
     def __init__(self,milkshake):
         """ Init the plugin, saving a reference to milkshake
@@ -49,11 +50,19 @@ class MSImportPlugin(object):
         """
         raise NotImplementedError
     
-    def run(self,task_lists):
-        """ Plugin code. Do whatever you want to export the task_lists and
-            return True, False or raise an exception. task_list is dict where
-            keys are list names and values are arrays of tasks. Only standard
-            types are used.
+    def run(self):
+        """ Plugin code. Do whatever you want, self.milkshake can help you.
         """
         raise NotImplementedError
 
+class MSExportPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)
+        
+class MSImportPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)
+
+class MSSyncPlugin(MSPlugin):
+    def __init__(self,milkshake):
+        MSPlugin.__init__(self,milkshake)
