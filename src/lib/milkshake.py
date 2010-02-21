@@ -43,7 +43,7 @@ from msplugin import *
 __all__ = [ "Milkshake" ]
 __author__  = "José Antonio (javsmo@gmail.com) and "
 __author__ += "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __copyright__ = "Copyright (c) 2009- Javsmo/Marcelo"
 __license__ = "GPLv3"
    
@@ -51,7 +51,7 @@ class Milkshake(Application):
     MSDEFDIR = u""
     MSDBNAME = u""
     MSICONNAME = u""
-    MSVERSION = u"0.1.0"
+    MSVERSION = unicode(__version__)
     def __init__(self,path=u"e:\\python"):
         Milkshake.MSDEFDIR = path
         Milkshake.MSDBNAME = os.path.join(path,u"milkshake.bin")
@@ -150,11 +150,15 @@ class Milkshake(Application):
 
     def load_icons(self):
         self.icons = {}
+        # loading 5 priorities, 10 levels
+        # 16384: P1/0%, 16386: P1/10%, ..., 16404: P1/100%
+        # 16406: P2/0% ...
+        # 16494: None
         for i in range(1,6):
             for p in range(0,21,2):
-                n = (i-1)*22+p
+                n = 16384 + (i-1)*22+p
                 self.icons["%d-%d"%(i,int(10*p/2))] = Icon(Milkshake.MSICONNAME,n,n)
-        self.icons["none"] = Icon(Milkshake.MSICONNAME,110,110)
+        self.icons["none"] = Icon(Milkshake.MSICONNAME,16494,16494)
         
     def load_cfg(self):
         try:
