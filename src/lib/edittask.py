@@ -39,11 +39,17 @@ class Notepad(Dialog):
         Dialog.__init__(self, cbk, title, Text(txt), menu)    
 
 class EditTask(Dialog):
-    def __init__(self, cbk, tsk, lst, lst_pos, pos):
+    def __init__(self, cbk, tsk, lst, lsts, lst_tab_pos, item_pos):
+        # lst: original list for this task
+        # lsts: available lists
+        # lst_tab_pos: last tab position
+        # item_pos: current item position inside list
         self.last_idx = 0
         self.lst = lst
-        self.lst_pos = lst_pos
-        self.pos = pos
+        self.last_lst = lst
+        self.lsts = lsts
+        self.lst_tab_pos = lst_tab_pos
+        self.item_pos = item_pos
         self.tsk = tsk
         Dialog.__init__(self, cbk, tsk['name'],
                         Listbox([(u"",u"")], self.update_value),
@@ -55,6 +61,7 @@ class EditTask(Dialog):
         values = [(u"Note",self.tsk['note'][:50]), 
                   (u"Name",self.tsk['name']),
                   (u"Priority",unicode(self.tsk['pri'])),
+                  (u"List",self.lst),
                   (u"Percent done",unicode(self.tsk['perc_done'])),
                   (u"Type",Task.TYPES_DESC[self.tsk['type']])]
         if self.tsk['type'] == Task.FIXED_DATE:
@@ -69,6 +76,7 @@ class EditTask(Dialog):
         ops = [self.edit_note,
                self.edit_name,
                self.edit_pri,
+               self.edit_lst,
                self.edit_perc_done,
                self.edit_type]
         if self.tsk['type'] == Task.FIXED_DATE:
@@ -97,6 +105,14 @@ class EditTask(Dialog):
         if op is not None:
             self.tsk["pri"] = op+1
         return True
+
+    def edit_lst(self):
+        glst = [ k for k in self.lsts if k != self.lst ]
+        if glst:
+            op = popup_menu(glst,u"To list:")
+            if op is not None:
+                self.lst = glst[op]
+            return True
     
     def edit_note(self):
         def cbk():

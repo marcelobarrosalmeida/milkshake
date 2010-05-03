@@ -43,7 +43,7 @@ from msplugin import *
 __all__ = [ "Milkshake" ]
 __author__  = "José Antonio (javsmo@gmail.com) and "
 __author__ += "Marcelo Barros de Almeida (marcelobarrosalmeida@gmail.com)"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __copyright__ = "Copyright (c) 2009- Javsmo/Marcelo"
 __license__ = "GPLv3"
    
@@ -277,23 +277,35 @@ class Milkshake(Application):
             lb = self.get_task_list(lst)
             app.body.set_list(lb,app.body.current())
 
-    def edit_task(self,lst,pos):
+    def edit_task(self,lst,item_pos):
         def cbk():
             if not self.dlg.cancel:
-                self.list_mngr[self.dlg.lst][self.dlg.pos] = self.dlg.tsk
-            self.update_lists(self.dlg.lst_pos,self.dlg.pos)
-        self.dlg = EditTask(cbk,self.list_mngr[lst][pos],lst,self.last_tab,pos)
+                # update first
+                item_pos = self.dlg.item_pos
+                self.list_mngr[self.dlg.last_lst][item_pos] = self.dlg.tsk
+                if self.dlg.lst != self.dlg.last_lst:
+                    # move after, if necessary
+                    self.__move_task(self.dlg.lst,self.dlg.last_lst,item_pos)
+                    item_pos = 0
+            self.update_lists(self.dlg.lst_tab_pos,item_pos)
+        self.dlg = EditTask(cbk,self.list_mngr[lst][item_pos],
+                            lst,self.list_mngr.keys(),self.last_tab,item_pos)
         self.dlg.run()
 
     def move_task(self,lst,n):
         glst = [k for k in self.list_mngr.keys() if k != lst ]
-        op = popup_menu(glst,u"To list:")
-        if op is not None:
-            nlst = glst[op] 
-            self.list_mngr[nlst].append(self.list_mngr[lst][n])
-            del self.list_mngr[lst][n]
-            self.update_lists()
+        if glst:
+            op = popup_menu(glst,u"To list:")
+            if op is not None:
+                nlst = glst[op]
+                self.__move_task(nlst,lst,n)
+                self.update_lists()
 
+    def __move_task(self,nlst,olst,n):
+        "Move task from one list (olst) to a new one (nlst)"
+        self.list_mngr[nlst].append(self.list_mngr[olst][n])
+        del self.list_mngr[olst][n]
+                
     def settings_dlg(self):
         def cbk():
             if not self.dlg.cancel:
