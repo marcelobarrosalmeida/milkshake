@@ -28,6 +28,7 @@ under certain conditions; see about box for details.
 import pickle
 import copy
 import time
+import calendar
 
 __all__ = [ "Task", "TaskList", "ListManager" ]
 
@@ -74,14 +75,14 @@ class Task(object):
 class TaskList(object):
     def __init__(self,lst=None):
         self.__tasks = []
-        self.__order_filter_func = TaskList.cmp_task #lambda a,b: cmp(a["pri"],b["pri"])
+        self.__order_filter_func = TaskList.default_task_filter #lambda a,b: cmp(a["pri"],b["pri"])
         self.__selection_filter_func = lambda a: True
         self.__filter_idx = []
         if lst is not None:
             for v in lst:
                 self.append(v)
     @staticmethod
-    def cmp_task(a,b):
+    def default_task_filter(a,b):
         """ Rules:
             - tasks marked as done go to the end, sorted by their priority
             - if not done, higher priority taks come first
@@ -146,7 +147,7 @@ class TaskList(object):
         self.update_filters()
 
     def clear_order_filter(self):
-        self.__order_filter_func = TaskList.cmp_task
+        self.__order_filter_func = TaskList.default_task_filter
         self.update_filters()
       
     def clear_selection_filter(self):
@@ -168,6 +169,45 @@ class TaskList(object):
             n += 1
         return "".join(msg)
 
+class SpecialTaskList(TaskList):
+    "No copy, just references to original values"
+    def __init__(self,*lsts):
+        "You can use several lists as parameters"
+        TaskList.__init__(self)
+        for lst in lsts:
+            for v in lst:
+                self.append(v)
+                
+    @staticmethod
+    def today_filter(a):
+        if a['type'] == Task.FIXED_DATE:
+            t1 = calendar.datetime.date.today()
+            t2 = calendar.datetime.date.fromtimestamp(a["due_date"])
+            if cmp(t1,t2) == 0:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    @staticmethod
+    def tomorrow_filter(a,b):
+        return cmp(a["pri"],b["pri"]) # to be defined    
+
+    @staticmethod
+    def thisweek_filter(a,b):
+        return cmp(a["pri"],b["pri"]) # to be defined
+    
+    def __setitem__(self,idx,v):
+        if not isinstance(v,Task):
+            raise ValueError        
+        self.__tasks[self.__filter_idx[idx]] = v
+        self.update_filters()        
+
+    def __setslice__(self,n,m,lst):
+        self.__tasks[self.__filter_idx[n:m]] = lst
+        self.update_filters()
+        
 class ListManager(object):
     VERSION = "1"
     def __init__(self,lsts=None):
@@ -257,9 +297,14 @@ if __name__ == "__main__":
     lm[u"smar"].append(Task())
     lm[u"smar"].append(Task(name="SOE",note="notas"))
     lm[u"smar"].append(Task(name="PPP",perc_done=100))
+    lm[u"smar"].append(Task(name="today1",type=Task.FIXED_DATE))
+    lm[u"smar"].append(Task(name="today2",type=Task.FIXED_DATE))
+    lm[u"smar"].append(Task(name="today3"))
+    lm[u"smar"].append(Task(name="tomorrow",type=Task.FIXED_DATE,due_date=time.time()+86400))
     
     lm[u"barao"]=TaskList()
     lm[u"barao"].append(Task())
+    lm[u"barao"].append(Task(name="today1",type=Task.FIXED_DATE))
     lm[u"barao"].append(Task(name="Provas",note="fazer provas"))
     lm[u"barao"].append(Task(name=u"Frequencias no portal",
                              note=u"atualizar ate sexta a freq"))
@@ -292,6 +337,11 @@ if __name__ == "__main__":
     print lm
 
     print "filter...."
-    lm[u"smar"].set_filter(lambda t: t['perc_done'] == 100)
+    #lm[u"smar"].set_selection_filter(lambda t: t['perc_done'] == 100)
 
-    print lm
+    lm[u"#Today"] = SpecialTaskList(lm[u"smar"],lm[u"barao"],lm[u"python"])
+    lm[u"#Today"].set_selection_filter(SpecialTaskList.today_filter)
+
+
+    print lm[u"#Today"]
+    
