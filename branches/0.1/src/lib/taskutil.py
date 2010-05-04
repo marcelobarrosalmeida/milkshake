@@ -171,12 +171,13 @@ class TaskList(object):
 
 class SpecialTaskList(TaskList):
     "No copy, just references to original values"
-    def __init__(self,*lsts):
-        "You can use several lists as parameters"
+    def __init__(self,lsts=None):
+        "You can use a list of lists"
         TaskList.__init__(self)
-        for lst in lsts:
-            for v in lst:
-                self.append(v)
+        if lsts is not None:
+            for lst in lsts:
+                for v in lst:
+                    self.append(v)
                 
     @staticmethod
     def today_filter(a):
@@ -215,6 +216,15 @@ class ListManager(object):
         if lsts is not None:
             for k,v in lsts.iteritems():
                 self.__setitem__(k,v)        
+
+    def remove_special_task_lists(self):
+        if self.__lists.has_key(u"Today"):
+            del self.__lists[u"#Today"]
+            
+    def update_special_task_lists(self):
+        self.remove_special_task_lists()
+        self.__lists[u"#Today"] = SpecialTaskList(self.__lists.values())
+        self.__lists[u"#Today"].set_selection_filter(SpecialTaskList.today_filter)
         
     def load(self,f):
         """ Load data in the following format:
@@ -248,11 +258,13 @@ class ListManager(object):
             raise IOError
         
         for k,v in self.iteritems():
-            try:
-                pickle.dump(k,f)
-                pickle.dump(v._TaskList__tasks,f)
-            except:
-                raise IOError
+            # do not serialize special task lists
+            if isinstance(v,TaskList):
+                try:
+                    pickle.dump(k,f)
+                    pickle.dump(v._TaskList__tasks,f)
+                except:
+                    raise IOError
     
     def keys(self):
         lsts = self.__lists.keys()
@@ -339,7 +351,7 @@ if __name__ == "__main__":
     print "filter...."
     #lm[u"smar"].set_selection_filter(lambda t: t['perc_done'] == 100)
 
-    lm[u"#Today"] = SpecialTaskList(lm[u"smar"],lm[u"barao"],lm[u"python"])
+    lm[u"#Today"] = SpecialTaskList([lm[u"smar"],lm[u"barao"],lm[u"python"]])
     lm[u"#Today"].set_selection_filter(SpecialTaskList.today_filter)
 
 
