@@ -184,29 +184,22 @@ class SpecialTaskList(TaskList):
         if a['type'] == Task.FIXED_DATE:
             t1 = calendar.datetime.date.today()
             t2 = calendar.datetime.date.fromtimestamp(a["due_date"])
+            appuifw.note(unicode(t1)+u","+unicode(t2),"error")
             if cmp(t1,t2) == 0:
                 return True
             else:
                 return False
         else:
             return False
-
-    @staticmethod
-    def tomorrow_filter(a,b):
-        return cmp(a["pri"],b["pri"]) # to be defined    
-
-    @staticmethod
-    def thisweek_filter(a,b):
-        return cmp(a["pri"],b["pri"]) # to be defined
     
     def __setitem__(self,idx,v):
         if not isinstance(v,Task):
             raise ValueError        
-        self.__tasks[self.__filter_idx[idx]] = v
+        self._TaskList__tasks[self._TaskList__filter_idx[idx]] = v
         self.update_filters()        
 
     def __setslice__(self,n,m,lst):
-        self.__tasks[self.__filter_idx[n:m]] = lst
+        self._TaskList__tasks[self._TaskList__filter_idx[n:m]] = lst
         self.update_filters()
         
 class ListManager(object):
@@ -218,7 +211,7 @@ class ListManager(object):
                 self.__setitem__(k,v)        
 
     def remove_special_task_lists(self):
-        if self.__lists.has_key(u"Today"):
+        if self.__lists.has_key(u"#Today"):
             del self.__lists[u"#Today"]
             
     def update_special_task_lists(self):

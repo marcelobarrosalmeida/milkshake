@@ -285,9 +285,9 @@ class Milkshake(Application):
 
     def edit_task(self,lst,item_pos):
         def cbk():
+            item_pos = self.dlg.item_pos
             if not self.dlg.cancel:
                 # update first
-                item_pos = self.dlg.item_pos
                 self.list_mngr[self.dlg.last_lst][item_pos] = self.dlg.tsk
                 if self.dlg.lst != self.dlg.last_lst:
                     # move after, if necessary
