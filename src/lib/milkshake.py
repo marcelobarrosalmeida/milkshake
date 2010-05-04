@@ -77,6 +77,12 @@ class Milkshake(Application):
         self.update_lists()
 
     def update_lists(self,lst_pos=None,pos=None):
+        # handle special lists
+        if self.config['show_today']:
+            self.list_mngr.update_special_task_lists()
+        else:
+            self.list_mngr.remove_special_task_lists()
+        # handle regular lists, in tabbed mode or not
         if not self.tabs_active:
             menu = [(u"Lists ...", self.list_menu)]+self.main_menu
             self.set_ui(u"Milkshake", Listbox(self.get_task_list_list(),self.edit_tasks), menu)

@@ -34,7 +34,8 @@ __all__ = [ "MSCONFIG", "MSSettings", "Config" ]
 
 class Config(object):
     DEF_VALS = {'single_row':False,
-                'show_done':True}
+                'show_done':True,
+                'show_today':True}
     
     def __init__(self,**args):
         self.__data = {}
@@ -97,8 +98,14 @@ class MSSettings(Dialog):
         else:
             done = u'No'
 
+        if self.config['show_today']:
+            today = u'Yes'
+        else:
+            today = u'No'
+            
         values = [(u"Use single rows",rows),
-                  (u"Show done tasks",done)]
+                  (u"Show done tasks",done),
+                  (u"Show #Today list",today)]
         
         self.body.set_list(values, self.last_idx)
         Dialog.refresh(self)
@@ -111,5 +118,7 @@ class MSSettings(Dialog):
             self.config['single_row'] = not self.config['single_row']
         elif idx == 1:
             self.config['show_done'] = not self.config['show_done']
+        elif idx == 2:
+            self.config['show_today'] = not self.config['show_today']
             
         self.refresh()
